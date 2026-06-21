@@ -1,0 +1,13 @@
+name: 03-dom-based-xss
+services:
+  lab:
+    build: .
+    image: 03-dom-based-xss:latest
+    container_name: 03-dom-based-xss
+    # Publish on the host loopback only - never exposed to the network.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped

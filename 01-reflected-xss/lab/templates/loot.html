@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Collector · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">Collector - /loot</span>
+</header>
+
+<main class="vk-shell">
+  <h1>Collector</h1>
+  <p>Data beaconed to <code>/collect</code> by injected scripts shows up here.
+     If the admin bot ran your payload, the stolen
+     <code>session_flag</code> cookie is below.</p>
+
+  {% if err %}
+  <div class="alert alert--error">
+    <div>
+      <div class="alert__title">Admin bot error</div>
+      <div class="alert__body">{{ err }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Captured ({{ loot|length }})</div>
+    {% if loot %}
+      {% for hit in loot %}
+      <div class="code code--fixed">
+        <div class="code__bar">
+          <div><span class="code__label">CAPTURED</span>
+               <span class="code__lang">{{ hit.time }} · from {{ hit.src }}</span></div>
+        </div>
+        <div class="code__body"><pre>{{ hit.data }}</pre></div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="alert alert--warning">
+        <div>
+          <div class="alert__title">Nothing captured yet</div>
+          <div class="alert__body">
+            Report a URL whose <code>q</code> injects a script that beacons
+            <code>document.cookie</code> to <code>/collect</code>. The admin bot
+            must execute it for the cookie to appear here.
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <p><a href="/">← Back to the lab</a></p>
+</main>
+</body>
+</html>

@@ -1,0 +1,13 @@
+name: 02-stored-xss
+services:
+  lab:
+    build: .
+    image: 02-stored-xss:latest
+    container_name: 02-stored-xss
+    # Publish on the host loopback only - never exposed to the network.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped

@@ -1,0 +1,13 @@
+name: 01-reflected-xss
+services:
+  lab:
+    build: .
+    image: 01-reflected-xss:latest
+    container_name: 01-reflected-xss
+    # Publish on the host loopback only - never exposed to the network.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped
