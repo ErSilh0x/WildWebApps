@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin Dashboard · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">Admin Dashboard</span>
+</header>
+
+<main class="vk-shell">
+{% if authed %}
+  <h1>Admin Dashboard</h1>
+
+  <div class="alert alert--success">
+    <div>
+      <div class="alert__title">Logged in as admin</div>
+      <div class="alert__body">Your session cookie authenticated this request.</div>
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Account security</div>
+    <p>Security question: <strong>{{ security_question }}</strong></p>
+    <p>Secret answer (account recovery token, and the lab flag):</p>
+    <div class="code"><div class="code__body"><pre>{{ secret_answer }}</pre></div></div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Admin area</div>
+    <p>Pending orders: 3 &nbsp;·&nbsp; Open tickets: 1 &nbsp;·&nbsp; Staff online: you</p>
+  </div>
+
+  <p><a href="/logout">Log out</a> &nbsp;·&nbsp; <a href="/">Back to the lab</a></p>
+{% else %}
+  <h1>Admin sign in</h1>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Sign in</div>
+    {% if login_error %}
+    <div class="alert alert--error">
+      <div><div class="alert__title">Sign-in failed</div>
+        <div class="alert__body">Wrong username or password.</div></div>
+    </div>
+    {% endif %}
+    <form class="flag-form" method="post" action="/login" autocomplete="off"
+          style="flex-direction:column;align-items:stretch;gap:8px;max-width:340px;">
+      <input class="input" name="username" placeholder="Username" spellcheck="false">
+      <input class="input" name="password" type="password" placeholder="Password">
+      <button class="btn btn--primary" type="submit">Sign in</button>
+    </form>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Forgot password? Account recovery</div>
+    <p>Answer the security question to recover access:</p>
+    <p><strong>{{ security_question }}</strong></p>
+    {% if recover_error %}
+    <div class="alert alert--error">
+      <div><div class="alert__title">Recovery failed</div>
+        <div class="alert__body">That answer is not correct.</div></div>
+    </div>
+    {% endif %}
+    <form class="flag-form" method="post" action="/recover" autocomplete="off"
+          style="flex-direction:column;align-items:stretch;gap:8px;max-width:340px;">
+      <input class="input" name="answer" placeholder="Your answer" spellcheck="false">
+      <button class="btn btn--secondary" type="submit">Recover account</button>
+    </form>
+  </div>
+
+  <p style="color:var(--color-text-muted);">
+    You do not know the password. An admin's recovery answer, however, can be
+    recovered by exploiting this lab.
+  </p>
+  <p><a href="/">Back to the lab</a></p>
+{% endif %}
+</main>
+</body>
+</html>

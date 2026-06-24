@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.sqlite
+*.sqlite3
+flag.txt
+.DS_Store

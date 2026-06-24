@@ -28,8 +28,18 @@ break it in a lab, and learn to fix it.
 | 02 | [Stored XSS (Server-Side)](02-stored-xss/) | `A05:2025 – Injection` | [Run](02-stored-xss/lab/) | Ready |
 | 03 | [Reflected XSS (Client-Side)](03-dom-based-xss/) | `A05:2025 – Injection` | [Run](03-dom-based-xss/lab/) | Ready |
 | 04 | [Stored XSS (Client-Side)](04-stored-dom-xss/) | `A05:2025 – Injection` | [Run](04-stored-dom-xss/lab/) | Ready |
+| 05 | [Cross-Site Request Forgery (CSRF)](05-csrf/) | `A01:2025 – Broken Access Control` | [Run](05-csrf/lab/) | Ready |
 
 <!-- Index rows are added per vulnerability; later auto-generated (C11). -->
+
+## Protection mechanisms
+
+Defenses that mitigate the vulnerabilities above. Each has its own writeup and a
+runnable lab that demonstrates the mechanism (what it stops, and what it does not).
+
+| # | Protection | Protects against | Lab | Status |
+|---|------------|------------------|-----|--------|
+| 01 | [HttpOnly cookie flag](protections/01-httponly-cookie/) | Cookie theft via XSS (`document.cookie`) | [Run](protections/01-httponly-cookie/lab/) | Ready |
 
 ## How each entry is structured
 
@@ -52,6 +62,8 @@ Each lab is a self-contained Docker image that runs **fully offline** after
 build and is reachable **only from `127.0.0.1`**.
 
 ```bash
+git clone https://github.com/ErSilh0x/WildWebApps.git
+
 cd 01-reflected-xss/lab
 docker compose up --build      # build once (needs network), then runs offline
 # open http://127.0.0.1:8000

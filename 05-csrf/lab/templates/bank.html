@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WildBank · Account</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildBank</span>
+  <span class="badge badge--cyan">Target app - localhost</span>
+</header>
+
+<main class="vk-shell">
+  <h1>Account settings</h1>
+
+  {% if signed_in %}
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">Signed in as admin</div>
+      <div class="alert__body">Current email: <code>{{ email }}</code></div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert--warning">
+    <div>
+      <div class="alert__title">Not signed in</div>
+      <div class="alert__body">
+        This is the admin's account page. You are not the admin, so this form will
+        not change anything for you. The logged-in admin's browser, however, will
+        submit it if it is asked to (that is the point of the attack).
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# The legitimate change-email UI. Note there is NO anti-CSRF token field here -
+     that omission is the vulnerability, and /account/email never checks for one
+     (and it also honors a GET). The attacker panel forges exactly this change. #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Change email</div>
+    <form class="flag-form" method="post" action="/account/email">
+      <input class="input" name="email" type="email" spellcheck="false"
+             placeholder="new email address"
+             value="{% if signed_in %}{{ email }}{% endif %}">
+      <button class="btn btn--primary" type="submit">Update email</button>
+    </form>
+  </div>
+
+  <p style="margin-top:18px;"><a href="{{ attacker_url }}/">← Back to the attacker panel</a></p>
+</main>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">Attacker panel - 127.0.0.1</span>
+</header>
+
+<main class="vk-shell">
+  <h1>{{ title }}</h1>
+  <p>{{ summary }}</p>
+
+  {% if instructions %}
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">Instructions</div>
+      <div class="alert__body">
+        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
+          {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if err %}
+  <div class="alert alert--error">
+    <div>
+      <div class="alert__title">Admin bot error</div>
+      <div class="alert__body">{{ err }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ── Target ─────────────────────────────────────────────────────────────── #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Target</div>
+    <div class="alert__body" style="margin-bottom:10px;">
+      The victim app is <strong>WildBank</strong>, where the admin is logged in.
+      Its change-email endpoint, <code>{{ bank_url }}/account/email</code>
+      (field <code>email</code>, also accepts <code>GET</code>), is authenticated
+      by the session cookie alone and carries no anti-CSRF token.
+    </div>
+    <p><a href="{{ bank_url }}/" target="_blank" rel="noopener">→ Open WildBank ({{ bank_url }}) ↗</a></p>
+  </div>
+
+  {# ── Result (flag gated behind a successful forged request) ──────────────── #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Result</div>
+    {% if attack_done %}
+    <div class="alert alert--success">
+      <div>
+        <div class="alert__title">CSRF succeeded - the admin's email was changed</div>
+        <div class="alert__body">
+          A forged cross-site request changed the admin's email to
+          <code>{{ forged_email }}</code>. The flag is below; submit it to confirm.
+        </div>
+      </div>
+    </div>
+    <div class="code code--fixed" style="margin-top:10px;">
+      <div class="code__bar"><div><span class="code__label">FLAG</span></div></div>
+      <div class="code__body"><pre>{{ flag }}</pre></div>
+    </div>
+    {% else %}
+    <div class="alert alert--warning">
+      <div>
+        <div class="alert__title">No successful CSRF yet</div>
+        <div class="alert__body">
+          Host an exploit that forges the email change, then deliver it to the
+          admin. The flag appears here once the admin's email has been changed by
+          your forged request.
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── Exploit hosting + delivery ─────────────────────────────────────────── #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Host your exploit</div>
+    <div class="alert__body" style="margin-bottom:10px;">
+      This HTML is served from your attacker origin at
+      <code>{{ exploit_url }}</code>. Make it auto-submit a cross-site GET (a
+      top-level navigation) to the bank's change-email endpoint, then deliver it
+      to the admin.
+    </div>
+    <form class="flag-form" method="post" action="/exploit"
+          style="flex-direction:column;align-items:stretch;gap:8px;">
+      <textarea class="input" name="html" rows="9" spellcheck="false"
+                style="font-family:var(--vk-font-mono,monospace);">{{ exploit_html }}</textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn--primary" type="submit">Store exploit</button>
+        <a class="btn btn--secondary" href="{{ exploit_url }}" target="_blank"
+           rel="noopener">Preview exploit page ↗</a>
+      </div>
+    </form>
+    <form class="flag-form" method="post" action="/deliver" style="margin-top:10px;">
+      <button class="btn btn--primary" type="submit">Deliver to admin</button>
+    </form>
+  </div>
+
+  {% if hints %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Hints</div>
+    {% for hint in hints %}
+    <details class="hint"><summary>Hint {{ loop.index }}</summary>
+      <div class="hint__body">{{ hint }}</div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if languages %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Code examples</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="tabs" id="lang-tabs"></div>
+      <div class="tabs" id="view-tabs">
+        <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+        <button class="tab" type="button" data-view="fixed">Fixed</button>
+      </div>
+    </div>
+    <div id="code-mount"></div>
+  </div>
+  {% endif %}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Submit the flag</div>
+    <form class="flag-form" id="flag-form" autocomplete="off">
+      <input class="input" id="flag-input" name="flag"
+             placeholder="Paste the 32-char MD5 flag…" spellcheck="false">
+      <button class="btn btn--primary" type="submit">Check</button>
+    </form>
+    <div class="alert" id="flag-result" hidden></div>
+  </div>
+
+  {% if references %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">References</div>
+    <ul>
+      {% for label, url in references %}
+      <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} ↗</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</main>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+name: 05-csrf
+services:
+  lab:
+    build: .
+    image: 05-csrf:latest
+    container_name: 05-csrf
+    # Publish on the host loopback only - never exposed to the network. Both lab
+    # origins share this port: attacker panel at http://127.0.0.1:8000 and the
+    # WildBank target at http://localhost:8000 (localhost also resolves to the
+    # loopback, and the app routes by Host header).
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped
