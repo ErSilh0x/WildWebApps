@@ -32,7 +32,7 @@ requests, but it is excluded from the `document.cookie` API and other script acc
   keeps working for the user, and also for injected script that makes requests on
   the user's behalf.
 
-## Mechanism
+## Diagram
 
 ![HttpOnly mechanism](diagram.svg)
 
