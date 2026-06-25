@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WildBank · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">WildBank · http://127.0.0.1:8000</span>
+</header>
+
+<main class="vk-shell">
+  <h1>WildBank</h1>
+
+  {% if signed_in %}
+  <div class="alert alert--success">
+    <div><div class="alert__title">Signed in as admin</div>
+      <div class="alert__body">Your session cookie authenticated this request.</div></div>
+  </div>
+  {% else %}
+  <div class="alert alert--info">
+    <div><div class="alert__title">Browsing as a guest</div>
+      <div class="alert__body">
+        You are not signed in. The admin is logged in only inside the lab's headless
+        bot, so your browser holds no session here. That is why you cannot read the
+        admin's profile directly.
+      </div></div>
+  </div>
+  {% endif %}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Account API · one CORS policy per endpoint</div>
+    <p>WildBank exposes account data as JSON on this origin. Each endpoint demonstrates a
+       different Cross-Origin Resource Sharing policy:</p>
+    <ul>
+      <li><a href="/api/no-cors" target="_blank" rel="noopener"><code>/api/no-cors</code></a>
+        - no CORS headers. The Same-Origin Policy blocks any other origin from reading it.</li>
+      <li><a href="/api/wildcard" target="_blank" rel="noopener"><code>/api/wildcard</code></a>
+        - <code>Access-Control-Allow-Origin: *</code>. Public, non-credentialed read only.</li>
+      <li><a href="/api/exact" target="_blank" rel="noopener"><code>/api/exact</code></a>
+        - exact allowlist naming <code>{{ partner_origin }}</code> (not your console).</li>
+      <li><a href="/api/preflight" target="_blank" rel="noopener"><code>/api/preflight</code></a>
+        - needs a custom header, so it is preflighted (OPTIONS), and exposes a header.</li>
+      <li><a href="/api/null-origin" target="_blank" rel="noopener"><code>/api/null-origin</code></a>
+        - trusts the literal <code>null</code> origin with credentials (a misconfiguration).</li>
+      <li><code>/api/profile</code>
+        - the admin's API key, behind a <em>broken</em> origin check. This is the challenge.</li>
+    </ul>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">This is the target, not your workspace</div>
+    <div class="alert__body">
+      Do your work from the attacker console at
+      <a href="{{ console_url }}" rel="noopener">{{ console_url }}</a>
+      (a different origin, same site). It probes every policy, hosts the exploit, delivers
+      it to the admin, and collects the key.
+    </div>
+  </div>
+</main>
+</body>
+</html>

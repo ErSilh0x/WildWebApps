@@ -1,0 +1,17 @@
+name: protection-03-samesite-cookie
+services:
+  lab:
+    build: .
+    image: protection-03-samesite-cookie:latest
+    container_name: protection-03-samesite-cookie
+    # Publish on the host loopback only - never exposed to the network. Both lab sites
+    # share this port: attacker console at http://127.0.0.1:8000 and the WildBank
+    # target at http://localhost:8000 (localhost also resolves to the loopback, and the
+    # app routes by Host header). They are different sites, so requests between them are
+    # cross-site, which is what SameSite reasons about.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped

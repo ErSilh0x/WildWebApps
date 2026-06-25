@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WildBank · Cookie inspector</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  table.ins { width:100%; border-collapse:collapse; font-size:.9rem; margin-top:8px; }
+  table.ins th, table.ins td { border:1px solid #30363d; padding:6px 9px; text-align:center; }
+  table.ins th { color:#8b949e; font-weight:600; }
+  table.ins td.kind { text-align:left; font-family:var(--vk-font-mono,monospace); color:#e6edf3; }
+  .yes { color:#7ee787; font-weight:700; }
+  .no  { color:#6e7681; }
+</style>
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildBank</span>
+  <span class="badge badge--cyan">Cookie inspector - localhost</span>
+</header>
+
+<main class="vk-shell">
+  <h1>Cookie inspector</h1>
+  <p>
+    Which marker cookies the bank received on each recent cross-site request. The
+    newest is highlighted. Compare it against the expected behavior below.
+  </p>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">This request</div>
+    <div class="alert {{ 'alert--success' if latest.markers else 'alert--warning' }}">
+      <div>
+        <div class="alert__title">{{ latest.method }} · {{ latest.kind }}</div>
+        <div class="alert__body">
+          Cookies received:
+          {% if latest.markers %}<code>{{ latest.markers | join(', ') }}</code>{% else %}<em>none</em>{% endif %}
+          {% if latest.session %} · plus the <code>session</code> cookie{% endif %}.
+          {% if 'm_strict' not in latest.markers and 'POST' in latest.method %}
+          A cross-site POST carries only <code>SameSite=None</code> cookies.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Expected behavior</div>
+    <table class="ins">
+      <tr><th style="text-align:left;">Request type</th><th>m_strict</th><th>m_lax</th><th>m_none</th></tr>
+      <tr><td class="kind">subresource (fetch / img)</td><td class="no">no</td><td class="no">no</td><td class="yes">yes</td></tr>
+      <tr><td class="kind">top-level GET navigation</td><td class="no">no</td><td class="yes">yes</td><td class="yes">yes</td></tr>
+      <tr><td class="kind">top-level POST navigation</td><td class="no">no</td><td class="no">no</td><td class="yes">yes</td></tr>
+    </table>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Live log (newest first)</div>
+    <table class="ins">
+      <tr>
+        <th style="text-align:left;">time · request</th>
+        {% for n in marker_names %}<th>{{ n }}</th>{% endfor %}
+        <th>session</th>
+      </tr>
+      {% for e in entries %}
+      <tr{% if loop.first %} style="background:#161b22;"{% endif %}>
+        <td class="kind">{{ e.time }} · {{ e.method }} · {{ e.kind }}</td>
+        {% for n in marker_names %}
+        <td class="{{ 'yes' if n in e.markers else 'no' }}">{{ '✓' if n in e.markers else '·' }}</td>
+        {% endfor %}
+        <td class="{{ 'yes' if e.session else 'no' }}">{{ '✓' if e.session else '·' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <p style="margin-top:18px;">
+    <a href="{{ bank_url }}/">← Back to WildBank</a>
+    &nbsp;·&nbsp;
+    <a href="{{ console_url }}/">Attacker console ↗</a>
+  </p>
+</main>
+</body>
+</html>

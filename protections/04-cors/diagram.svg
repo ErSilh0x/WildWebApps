@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 680" width="1040" height="680" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif">
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#21262d" stroke-width="1" opacity="0.5"/></pattern>
+    <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#8b949e"/></marker>
+    <marker id="arGreen" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#4ade80"/></marker>
+    <marker id="arAmber" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 Z" fill="#d29922"/></marker>
+  </defs>
+  <rect x="0" y="0" width="1040" height="680" fill="#0d1117"/>
+  <rect x="0" y="0" width="1040" height="680" fill="url(#grid)"/>
+  <text x="22" y="34" font-size="13" font-family="'JetBrains Mono',monospace" fill="#00caff" letter-spacing="1">&gt;_</text>
+  <text x="50" y="36" font-size="19" font-weight="700" fill="#e6edf3">Cross-Origin Resource Sharing (CORS) - Defense Path</text>
+  <line x1="892" y1="20" x2="916" y2="20" stroke="#8b949e" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="922" y="24" font-size="11" fill="#8b949e">request</text>
+  <line x1="892" y1="38" x2="916" y2="38" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+  <text x="922" y="42" font-size="11" fill="#8b949e">response</text>
+  <line x1="892" y1="56" x2="916" y2="56" stroke="#4ade80" stroke-width="1.5" marker-end="url(#arGreen)"/>
+  <text x="922" y="60" font-size="11" fill="#8b949e">defense holds</text>
+  <line x1="892" y1="74" x2="916" y2="74" stroke="#d29922" stroke-width="1.5" marker-end="url(#arAmber)"/>
+  <text x="922" y="78" font-size="11" fill="#e3b341">misconfig</text>
+  <line x1="150" y1="110" x2="150" y2="566" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <line x1="480" y1="110" x2="480" y2="566" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <line x1="800" y1="110" x2="800" y2="566" stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <rect x="75" y="64" width="150" height="46" rx="6" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+  <text x="150" y="87" text-anchor="middle" font-size="14" font-weight="700" fill="#5cd6f7">Attacker page</text>
+  <text x="150" y="101" text-anchor="middle" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">127.0.0.1:8001</text>
+  <rect x="405" y="64" width="150" height="46" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="480" y="87" text-anchor="middle" font-size="14" font-weight="700" fill="#e6edf3">Admin browser</text>
+  <text x="480" y="101" text-anchor="middle" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">WildBank tab</text>
+  <rect x="725" y="64" width="150" height="46" rx="6" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+  <text x="800" y="87" text-anchor="middle" font-size="14" font-weight="700" fill="#e6edf3">WildBank</text>
+  <text x="800" y="101" text-anchor="middle" font-size="9" font-family="'JetBrains Mono',monospace" fill="#8b949e">127.0.0.1:8000 /api/profile</text>
+  <text x="480" y="134" text-anchor="middle" font-size="9.5" font-style="italic" fill="#6e7681">logged in to WildBank, SameSite=Lax session cookie (same site, different origin)</text>
+  <text x="315" y="158" text-anchor="middle" font-size="11" fill="#e6edf3">1. Admin opens the attacker page</text>
+  <text x="315" y="170" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#a0e9ff">127.0.0.1:8001 (an origin the bank never named)</text>
+  <line x1="158" y1="177" x2="472" y2="177" stroke="#8b949e" stroke-width="1.5" marker-end="url(#ar)"/>
+  <text x="640" y="207" text-anchor="middle" font-size="11" fill="#e6edf3">2. attacker JS: fetch(/api/profile, credentials: include)</text>
+  <text x="640" y="219" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#a0e9ff">browser attaches the admin session cookie</text>
+  <line x1="488" y1="226" x2="792" y2="226" stroke="#8b949e" stroke-width="1.5" marker-end="url(#ar)"/>
+  <rect x="652" y="244" width="240" height="44" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+  <text x="772" y="263" text-anchor="middle" font-size="10" font-weight="600" fill="#e6edf3">broken origin check</text>
+  <text x="772" y="278" text-anchor="middle" font-size="8.5" font-family="'JetBrains Mono',monospace" fill="#e3b341">Origin.startsWith("http://127.0.0.1") ignores port</text>
+  <text x="640" y="320" text-anchor="middle" font-size="11" fill="#e3b341">3. 200 OK: Access-Control-Allow-Origin reflects your origin</text>
+  <text x="640" y="332" text-anchor="middle" font-size="9.5" font-family="'JetBrains Mono',monospace" fill="#e3b341">Access-Control-Allow-Credentials: true</text>
+  <line x1="792" y1="339" x2="488" y2="339" stroke="#d29922" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#arAmber)"/>
+  <rect x="332" y="364" width="296" height="46" rx="6" fill="#161b22" stroke="#d29922" stroke-width="1.5"/>
+  <text x="480" y="384" text-anchor="middle" font-size="10.5" font-weight="600" fill="#e6edf3">Browser: origin echoed + credentials allowed</text>
+  <text x="480" y="400" text-anchor="middle" font-size="9" fill="#8b949e">the cross-origin read is permitted</text>
+  <text x="315" y="438" text-anchor="middle" font-size="11" fill="#e3b341">4. api_key (the flag) handed to the attacker, then beaconed away</text>
+  <line x1="472" y1="445" x2="158" y2="445" stroke="#d29922" stroke-width="2" marker-end="url(#arAmber)"/>
+  <rect x="120" y="478" width="800" height="60" rx="8" fill="#10261a" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="138" y="502" font-size="12" font-weight="700" fill="#4ade80">The fix: an exact allowlist</text>
+  <text x="138" y="520" font-size="11" fill="#cde6d6">Compare Origin against an explicit set with a full-string match. 127.0.0.1:8001 is not in the trusted set,</text>
+  <text x="138" y="534" font-size="11" fill="#cde6d6">so no Access-Control-Allow-Origin is returned, the browser refuses the read, and the same cookie leaks nothing.</text>
+  <text x="22" y="582" font-size="12.5" fill="#6e7681">CORS is enforced by the browser from the server's headers, so the whole grant rests on how strictly the server validates the <tspan fill="#e3b341" font-weight="700">Origin</tspan>.</text>
+  <text x="22" y="600" font-size="12.5" fill="#6e7681">A reflected origin, or a prefix / suffix / substring match (<tspan fill="#e3b341" font-weight="700">the boundary</tspan>), trusts the attacker; an exact allowlist <tspan fill="#4ade80" font-weight="700">holds</tspan>.</text>
+</svg>

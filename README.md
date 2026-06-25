@@ -40,6 +40,9 @@ runnable lab that demonstrates the mechanism (what it stops, and what it does no
 | # | Protection | Protects against | Lab | Status |
 |---|------------|------------------|-----|--------|
 | 01 | [HttpOnly cookie flag](protections/01-httponly-cookie/) | Cookie theft via XSS (`document.cookie`) | [Run](protections/01-httponly-cookie/lab/) | Ready |
+| 02 | [Same-Origin Policy](protections/02-same-origin-policy/) | Cross-origin data theft (read isolation); CORS misconfiguration | [Run](protections/02-same-origin-policy/lab/) | Ready |
+| 03 | [SameSite cookie attribute](protections/03-samesite-cookie/) | Cross-Site Request Forgery (CSRF); cross-site cookie attachment | [Run](protections/03-samesite-cookie/lab/) | Ready |
+| 04 | [Cross-Origin Resource Sharing (CORS)](protections/04-cors/) | Insecure cross-origin sharing; cross-origin data theft | [Run](protections/04-cors/lab/) | Ready |
 
 ## How each entry is structured
 
@@ -55,6 +58,12 @@ Every vulnerability lives in its own folder:
 A writeup contains: summary → OWASP Top 10 alignment → how it works →
 attack-path diagram → vulnerable code (8 languages) → fixed code (8 languages) →
 detection signatures → remediation checklist → references → lab instructions.
+
+## Diagrams
+
+WildWebApps now has sequence diagrams — an more intuitive way to understand how complex web vulnerabilities work.
+
+![diag_demo](img/wwa_diag.png)
 
 ## Running a lab
 

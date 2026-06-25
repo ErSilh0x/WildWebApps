@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WildBank · Account</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildBank</span>
+  <span class="badge badge--cyan">Target app - localhost</span>
+</header>
+
+<main class="vk-shell">
+  <h1>Account settings</h1>
+
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">Three marker cookies issued to you</div>
+      <div class="alert__body">
+        Visiting WildBank set one cookie per SameSite value. Go to the attacker console,
+        fire cross-site requests, and watch which of these the browser attaches:
+        <ul style="margin:.4rem 0 0 1.1rem;padding:0;">
+          {% for name, samesite, secure in markers %}
+          <li><code>{{ name }}</code> -
+            {% if samesite %}<code>SameSite={{ samesite }}{% if secure %}; Secure{% endif %}</code>{% else %}no <code>SameSite</code> attribute (browsers treat it as Lax){% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Account</div>
+    <div class="alert__body">Admin account email: <code>{{ email }}</code></div>
+  </div>
+
+  {# The legitimate change-email UI. There is NO anti-CSRF token field, and the endpoint
+     also honors a GET. The session cookie that authorizes it is SameSite=Lax, so a
+     cross-site POST cannot carry it, but a top-level cross-site GET can. #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Change email</div>
+    <div class="alert__body" style="margin-bottom:8px;">
+      Authenticated by the <code>session</code> cookie (<code>SameSite=Lax</code>) alone,
+      with no anti-CSRF token. Only the logged-in admin's browser can submit it.
+    </div>
+    <form class="flag-form" method="post" action="/account/email">
+      <input class="input" name="email" type="email" spellcheck="false"
+             placeholder="new email address">
+      <button class="btn btn--primary" type="submit">Update email</button>
+    </form>
+  </div>
+
+  <p style="margin-top:18px;">
+    <a href="{{ bank_url }}/inspect?kind=opened%20inspector" target="_blank" rel="noopener">Open the cookie inspector ↗</a>
+    &nbsp;·&nbsp;
+    <a href="{{ console_url }}/">← Back to the attacker console</a>
+  </p>
+</main>
+</body>
+</html>

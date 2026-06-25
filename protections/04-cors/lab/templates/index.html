@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  table.pg { width:100%; border-collapse:collapse; font-size:.86rem; margin-top:10px; }
+  table.pg th, table.pg td { border:1px solid #30363d; padding:7px 9px; vertical-align:top; }
+  table.pg th { color:#8b949e; font-weight:600; text-align:left; }
+  table.pg td.ep { font-family:'JetBrains Mono',monospace; color:#e6edf3; white-space:nowrap; }
+  table.pg .pg-btns { display:flex; gap:6px; flex-wrap:wrap; }
+  .btn--mini { padding:3px 9px; font-size:.78rem; }
+  .creds-row { display:flex; align-items:center; gap:8px; margin:10px 0 2px; }
+  .ref-tbl { width:100%; border-collapse:collapse; font-size:.84rem; margin-top:8px; }
+  .ref-tbl th, .ref-tbl td { border:1px solid #30363d; padding:6px 9px; text-align:center; }
+  .ref-tbl th { color:#8b949e; font-weight:600; }
+  .ref-tbl td.l { text-align:left; font-family:'JetBrains Mono',monospace; color:#e6edf3; }
+  .yes { color:#7ee787; font-weight:700; }
+  .no  { color:#6e7681; }
+</style>
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">{{ title }}</span>
+</header>
+
+<main class="vk-shell">
+  <h1>{{ title }}</h1>
+  <p>{{ summary }}</p>
+
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">Attacker console · this origin is http://127.0.0.1:8001</div>
+      <div class="alert__body">
+        Target bank: <a href="{{ bank_url }}" target="_blank" rel="noopener">{{ bank_url }}</a>
+        &nbsp;(a different origin, same site).
+      </div>
+    </div>
+  </div>
+
+  {% if err %}
+  <div class="alert alert--error">
+    <div><div class="alert__title">Admin bot error</div>
+      <div class="alert__body">{{ err }}</div></div>
+  </div>
+  {% endif %}
+
+  {% if instructions %}
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">Instructions</div>
+      <div class="alert__body">
+        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
+          {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {# -- Policy playground: probe every CORS policy from this origin ----------- #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Policy playground · probe every CORS policy</div>
+    <div class="alert__body" style="margin-bottom:8px;">
+      Fire a cross-origin read at each bank endpoint and watch which the browser lets you
+      read. Toggle credentials to see the difference. A blocked read throws a
+      <code>TypeError</code>: the request was sent, but the browser refused to reveal the
+      response to this origin.
+    </div>
+    <div class="creds-row">
+      <label><input type="checkbox" id="send-creds"> send credentials
+        (<code>credentials: 'include'</code>)</label>
+    </div>
+    <table class="pg">
+      <tr><th>Endpoint · policy</th><th>Probe</th></tr>
+      <tr>
+        <td class="ep">/api/no-cors<br><span style="color:#6e7681;">no CORS headers</span></td>
+        <td><div class="pg-btns">
+          <button class="btn btn--secondary btn--mini" type="button" onclick="probe('/api/no-cors')">Read</button>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="ep">/api/wildcard<br><span style="color:#6e7681;">Allow-Origin: *</span></td>
+        <td><div class="pg-btns">
+          <button class="btn btn--secondary btn--mini" type="button" onclick="probe('/api/wildcard')">Read</button>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="ep">/api/exact<br><span style="color:#6e7681;">Allow-Origin: {{ partner_origin }}</span></td>
+        <td><div class="pg-btns">
+          <button class="btn btn--secondary btn--mini" type="button" onclick="probe('/api/exact')">Read</button>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="ep">/api/preflight<br><span style="color:#6e7681;">custom header, OPTIONS preflight</span></td>
+        <td><div class="pg-btns">
+          <button class="btn btn--secondary btn--mini" type="button" onclick="probePreflight()">Read with X-WildBank-Client</button>
+        </div></td>
+      </tr>
+      <tr>
+        <td class="ep">/api/null-origin<br><span style="color:#6e7681;">Allow-Origin: null</span></td>
+        <td><div class="pg-btns">
+          <button class="btn btn--secondary btn--mini" type="button" onclick="probe('/api/null-origin')">Read directly</button>
+          <button class="btn btn--secondary btn--mini" type="button" onclick="probeNull()">Read via sandboxed iframe</button>
+        </div></td>
+      </tr>
+    </table>
+    <div class="code" style="margin-top:12px;">
+      <div class="code__body"><pre id="pg-out">No probe yet. Click a Read button above.</pre></div>
+    </div>
+    <div class="vk-eyebrow" style="margin-top:14px;">Expected behavior</div>
+    <table class="ref-tbl">
+      <tr><th style="text-align:left;">Endpoint</th><th>read, no credentials</th><th>read, with credentials</th></tr>
+      <tr><td class="l">/api/no-cors</td><td class="no">blocked</td><td class="no">blocked</td></tr>
+      <tr><td class="l">/api/wildcard</td><td class="yes">allowed</td><td class="no">blocked (* + creds)</td></tr>
+      <tr><td class="l">/api/exact</td><td class="no">blocked (not you)</td><td class="no">blocked (not you)</td></tr>
+      <tr><td class="l">/api/preflight</td><td class="yes">allowed (exact origin)</td><td class="yes">allowed (exact origin)</td></tr>
+      <tr><td class="l">/api/null-origin (direct)</td><td class="no">blocked</td><td class="no">blocked</td></tr>
+      <tr><td class="l">/api/null-origin (sandboxed iframe)</td><td class="yes">allowed (origin null)</td><td class="yes">allowed (origin null)</td></tr>
+      <tr><td class="l">/api/profile</td><td class="yes">allowed (broken check)</td><td class="yes">allowed (broken check)</td></tr>
+    </table>
+  </div>
+
+  {# -- Host the exploit and deliver it to the admin -------------------------- #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Challenge · host an exploit, then deliver it to the admin</div>
+    <div class="alert__body" style="margin-bottom:10px;">
+      <code>/api/profile</code> trusts any Origin starting with <code>http://127.0.0.1</code>,
+      so it trusts this console (<code>:8001</code>) by mistake. This HTML is served from
+      your console origin at <code>{{ console_url }}/exploit</code>. Make it read the key
+      for the admin and beacon it to <code>/collect</code>, Store it, then Deliver to the
+      logged-in admin.
+    </div>
+    <form method="post" action="/exploit">
+      <textarea class="input" name="html" rows="9" spellcheck="false"
+        style="width:100%;font-family:'JetBrains Mono',monospace;font-size:.85rem;">{{ exploit_html }}</textarea>
+      <div class="flag-form" style="margin-top:10px;">
+        <button class="btn btn--primary" type="submit">Store exploit</button>
+      </div>
+    </form>
+    <form method="post" action="/deliver" style="margin-top:10px;">
+      <div class="flag-form">
+        <button class="btn btn--secondary" type="submit">Deliver to admin</button>
+      </div>
+    </form>
+    <p style="margin-top:10px;">
+      <a href="/exploit" target="_blank" rel="noopener">→ View your hosted page (/exploit)</a>
+      &nbsp;·&nbsp; <a href="{{ bank_url }}" target="_blank" rel="noopener">→ Open the bank</a>
+    </p>
+  </div>
+
+  {# -- Collector ------------------------------------------------------------- #}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Collector ({{ loot|length }})</div>
+    {% if solved %}
+    <div class="alert alert--success">
+      <div><div class="alert__title">Key captured</div>
+        <div class="alert__body">The admin's API key was read cross-origin through the
+          broken origin check and beaconed here. It is your flag, submit it below.</div></div>
+    </div>
+    {% endif %}
+    {% if loot %}
+      {% for hit in loot %}
+      <div class="code code--fixed">
+        <div class="code__bar">
+          <div><span class="code__label">CAPTURED</span>
+               <span class="code__lang">{{ hit.time }} · from {{ hit.src }}</span></div>
+        </div>
+        <div class="code__body"><pre>{{ hit.data }}</pre></div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="alert alert--warning">
+        <div><div class="alert__title">Nothing captured yet</div>
+          <div class="alert__body">Store an exploit that beacons the key to
+            <code>/collect</code>, then Deliver to admin. The admin bot must run it for
+            the key to appear here.</div></div>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if hints %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Hints</div>
+    {% for hint in hints %}
+    <details class="hint"><summary>Hint {{ loop.index }}</summary>
+      <div class="hint__body">{{ hint }}</div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if languages %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Keep CORS safe: validate the Origin</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="tabs" id="lang-tabs"></div>
+      <div class="tabs" id="view-tabs">
+        <button class="tab" type="button" data-view="vuln">Dangerous</button>
+        <button class="tab" type="button" data-view="fixed">Safe</button>
+      </div>
+    </div>
+    <div id="code-mount"></div>
+  </div>
+  {% endif %}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Submit the flag</div>
+    <form class="flag-form" id="flag-form" autocomplete="off">
+      <input class="input" id="flag-input" name="flag"
+             placeholder="Paste the captured 32-char MD5 key…" spellcheck="false">
+      <button class="btn btn--primary" type="submit">Check</button>
+    </form>
+    <div class="alert" id="flag-result" hidden></div>
+  </div>
+
+  {% if references %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">References</div>
+    <ul>
+      {% for label, url in references %}
+      <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} ↗</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</main>
+
+<script>
+  // Live cross-origin tester: fetch the bank's endpoints from THIS origin.
+  var BANK = {{ bank_url | tojson }};
+  function pgShow(t) { document.getElementById("pg-out").textContent = t; }
+  function creds() { return document.getElementById("send-creds").checked; }
+  function mode() { return creds() ? "include" : "omit"; }
+
+  function probe(path) {
+    pgShow("GET " + BANK + path + "  (credentials: " + mode() + ") ...");
+    fetch(BANK + path, { credentials: mode() })
+      .then(function (r) {
+        return r.text().then(function (body) {
+          pgShow("HTTP " + r.status + " - the browser ALLOWED this cross-origin read\n\n" + body);
+        });
+      })
+      .catch(function (e) {
+        pgShow("BLOCKED by CORS (no matching grant for this origin):\n" + e +
+               "\n\nThe request was sent, but the browser refused to reveal the response.");
+      });
+  }
+
+  function probePreflight() {
+    pgShow("GET " + BANK + "/api/preflight  with header X-WildBank-Client (credentials: " +
+           mode() + ")\nThis non-simple request triggers an OPTIONS preflight first ...");
+    fetch(BANK + "/api/preflight", {
+      credentials: mode(),
+      headers: { "X-WildBank-Client": "lab" }
+    })
+      .then(function (r) {
+        var quota = r.headers.get("X-WildBank-Quota");
+        return r.text().then(function (body) {
+          pgShow("HTTP " + r.status + " - preflight passed, read ALLOWED\n" +
+                 "Access-Control-Expose-Headers let this origin read:\n" +
+                 "  X-WildBank-Quota: " + (quota || "(not exposed)") + "\n\n" + body);
+        });
+      })
+      .catch(function (e) {
+        pgShow("BLOCKED at preflight or read:\n" + e);
+      });
+  }
+
+  function probeNull() {
+    pgShow("Creating a sandboxed iframe (sandbox=allow-scripts, so its origin is null) " +
+           "and reading /api/null-origin from inside it ...");
+    var frame = document.createElement("iframe");
+    frame.setAttribute("sandbox", "allow-scripts");   // no allow-same-origin => origin null
+    frame.style.display = "none";
+    frame.srcdoc =
+      "<script>" +
+      "fetch(" + JSON.stringify(BANK + "/api/null-origin") + ",{credentials:'include'})" +
+      ".then(function(r){return r.text();})" +
+      ".then(function(b){parent.postMessage({ok:true,body:b},'*');})" +
+      ".catch(function(e){parent.postMessage({ok:false,err:String(e)},'*');});" +
+      "<\/script>";
+    document.body.appendChild(frame);
+  }
+
+  window.addEventListener("message", function (ev) {
+    if (!ev.data || typeof ev.data !== "object" || !("ok" in ev.data)) return;
+    if (ev.data.ok) {
+      pgShow("HTTP read from a null-origin iframe - ALLOWED by Allow-Origin: null\n\n" + ev.data.body);
+    } else {
+      pgShow("Null-origin read blocked:\n" + ev.data.err);
+    }
+  });
+</script>
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
