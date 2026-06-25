@@ -61,7 +61,7 @@ detection signatures → remediation checklist → references → lab instructio
 
 ## Diagrams
 
-WildWebApps now has sequence diagrams — a more intuitive way to understand how complex web vulnerabilities work.
+WildWebApps has sequence diagrams — a more intuitive way to understand how complex web vulnerabilities work.
 
 ![diag_demo](img/wwa_diag.png)
 
