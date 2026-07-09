@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:820px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 16px; }
+  .card h3 { margin:0 0 4px; font-size:15px; color:#e6edf3; }
+  .card p.desc { color:#8b949e; font-size:12.5px; margin:.35rem 0 .7rem; line-height:1.5; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .row .input { flex:1 1 200px; }
+  select.sel { background:#0d1117; color:#e6edf3; border:1px solid #30363d; border-radius:8px;
+               padding:8px 10px; font-family:inherit; font-size:13px; }
+  label.lbl { display:block; color:#c9d1d9; font-size:12px; margin:0 0 4px; }
+  .res { margin-top:12px; border-top:1px dashed #30363d; padding-top:10px; }
+  .res .sqlbox { font-family:var(--font-mono,monospace); font-size:12px; color:#00caff;
+                 background:#0d1117; border:1px solid #30363d; border-radius:6px;
+                 padding:8px 10px; overflow-x:auto; white-space:pre-wrap; word-break:break-word; }
+  table.rt { border-collapse:collapse; width:100%; margin-top:8px; font-size:12px; }
+  table.rt th, table.rt td { border:1px solid #30363d; padding:5px 8px; text-align:left;
+                             color:#c9d1d9; vertical-align:top; word-break:break-word; }
+  table.rt th { background:#0d1117; color:#00caff; font-family:var(--font-mono,monospace); }
+  .st-line { margin-top:8px; font-size:12.5px; color:#c9d1d9; }
+  .st-err { margin-top:8px; font-size:12px; color:#f85149; font-family:var(--font-mono,monospace);
+            white-space:pre-wrap; word-break:break-word; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 4px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:5px 10px;
+          border-radius:999px; border:1px solid #30363d; background:#0d1117; color:#c9d1d9; }
+  .dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+  .ok  { background:#3fb950; } .wait { background:#d29922; }
+  .tagpill { font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:#00caff;
+             border:1px solid #00caff55; border-radius:999px; padding:2px 8px; margin-left:6px; }
+  .dblinks a { display:inline-block; margin:4px 8px 4px 0; }
+</style>
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">SQL Injection</span>
+</header>
+
+<main class="vk-shell">
+  <h1>Citizen Services</h1>
+  <p>A municipal records portal wired to <b>four real database engines</b>. Every
+  lookup below concatenates your input straight into a SQL query, so the
+  engine-specific injection syntax from the writeup behaves exactly as it does in
+  the wild. Recover the <b>MD5 flag</b> stored as the <code>password_hash</code> of
+  <code>wwa_admin</code> in <code>user_table</code> and submit it below.</p>
+
+  <div class="chips">
+    {% for key, meta in engines.items() %}
+      {% set ready = status[key].ready %}
+      <span class="chip"><span class="dot {{ 'ok' if ready else 'wait' }}"></span>
+        {{ meta.label }} - {{ 'ready' if ready else 'starting…' }}</span>
+    {% endfor %}
+  </div>
+  <p style="color:#8b949e;font-size:12px;margin:.2rem 0 0;">The heavier engines (SQL
+  Server, Oracle) take a minute or two to boot and seed on first start. Reload if a
+  form reports a database is still starting.</p>
+
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">How to solve</div>
+      <div class="alert__body">
+        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
+          {% for step in instructions %}<li style="margin-bottom:3px;">{{ step }}</li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Per-database reference pages</div>
+    <div class="dblinks">
+      {% for key, meta in engines.items() %}
+        <a class="btn" href="{{ url_for('db_page', engine=key) }}">{{ meta.label }} &raquo;</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Lookup forms</div>
+    <div class="grid">
+      {% for f in forms %}
+      <div class="card" id="form-{{ f.key }}">
+        <h3>{{ f.title }}<span class="tagpill">{{ f.tag }}</span></h3>
+        <p class="desc">{{ f.desc }}</p>
+        <form method="POST" action="{{ url_for('run') }}#form-{{ f.key }}">
+          <input type="hidden" name="form" value="{{ f.key }}">
+          <label class="lbl" for="eng-{{ f.key }}">Database</label>
+          <div class="row" style="margin-bottom:8px;">
+            <select class="sel" id="eng-{{ f.key }}" name="engine">
+              {% for key, meta in engines.items() %}
+              <option value="{{ key }}"
+                {% if result and result.form == f.key and result.engine == key %}selected{% endif %}>
+                {{ meta.label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <label class="lbl" for="q-{{ f.key }}">{{ f.label }}</label>
+          <div class="row">
+            <input class="input" id="q-{{ f.key }}" name="q" spellcheck="false"
+                   autocomplete="off" placeholder="{{ f.placeholder }}"
+                   value="{{ result.input if result and result.form == f.key else '' }}">
+            <button class="btn btn--primary" type="submit">Run</button>
+          </div>
+        </form>
+
+        {% if result and result.form == f.key %}
+        <div class="res">
+          <div class="sqlbox">{{ result.sql }}</div>
+          {% if result.not_ready %}
+            <div class="st-err">{{ result.error }}</div>
+          {% else %}
+            {% if result.status %}<div class="st-line">{{ result.status }}</div>{% endif %}
+            {% if result.error %}<div class="st-err">{{ result.error }}</div>{% endif %}
+            {% if result.columns and result.rows %}
+              <table class="rt">
+                <tr>{% for c in result.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+                {% for r in result.rows %}
+                  <tr>{% for cell in r %}<td>{{ cell }}</td>{% endfor %}</tr>
+                {% endfor %}
+              </table>
+            {% elif result.columns and not result.rows and not result.status and not result.error %}
+              <div class="st-line">Query ran; 0 rows returned.</div>
+            {% endif %}
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Hints</div>
+    {% for hint in hints %}
+    <details class="hint"><summary>Hint {{ loop.index }}</summary>
+      <div class="hint__body">{{ hint }}</div>
+    </details>
+    {% endfor %}
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">The fix (parameterized queries)</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="tabs" id="lang-tabs"></div>
+      <div class="tabs" id="view-tabs">
+        <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+        <button class="tab" type="button" data-view="fixed">Fixed</button>
+      </div>
+    </div>
+    <div id="code-mount"></div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Submit the flag</div>
+    <form class="flag-form" id="flag-form" autocomplete="off">
+      <input class="input" id="flag-input" name="flag"
+             placeholder="Paste the 32-char MD5 flag…" spellcheck="false">
+      <button class="btn btn--primary" type="submit">Check</button>
+    </form>
+    <div class="alert" id="flag-result" hidden></div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">References</div>
+    <ul>
+      {% for label, url in references %}
+      <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} ↗</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</main>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

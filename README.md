@@ -29,6 +29,7 @@ break it in a lab, and learn to fix it.
 | 03 | [Reflected XSS (Client-Side)](03-dom-based-xss/) | `A05:2025 – Injection` | [Run](03-dom-based-xss/lab/) | Ready |
 | 04 | [Stored XSS (Client-Side)](04-stored-dom-xss/) | `A05:2025 – Injection` | [Run](04-stored-dom-xss/lab/) | Ready |
 | 05 | [Cross-Site Request Forgery (CSRF)](05-csrf/) | `A01:2025 – Broken Access Control` | [Run](05-csrf/lab/) | Ready |
+| 06 | [SQL Injection](06-sql-injection/) | `A05:2025 – Injection` | [Run](06-sql-injection/lab/) | Ready |
 
 <!-- Index rows are added per vulnerability; later auto-generated (C11). -->
 
@@ -58,12 +59,6 @@ Every vulnerability lives in its own folder:
 A writeup contains: summary → OWASP Top 10 alignment → how it works →
 attack-path diagram → vulnerable code (8 languages) → fixed code (8 languages) →
 detection signatures → remediation checklist → references → lab instructions.
-
-## Diagrams
-
-WildWebApps has sequence diagrams — a more intuitive way to understand how complex web vulnerabilities work.
-
-![diag_demo](img/wwa_diag.png)
 
 ## Running a lab
 

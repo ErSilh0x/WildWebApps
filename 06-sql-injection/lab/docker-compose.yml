@@ -1,0 +1,104 @@
+name: 06-sql-injection
+
+# Citizen Services SQLi lab. One Flask portal (web) talks to FOUR real database
+# engines so the engine-specific syntax in the writeup behaves exactly as it does
+# in the wild. Everything is published on the host loopback (127.0.0.1) only and
+# runs offline after the first build. The web app seeds each database on startup
+# (with retries), so it is fine that the heavier engines take a while to boot.
+
+services:
+  web:
+    build: .
+    image: 06-sql-injection:latest
+    container_name: 06-sql-injection-web
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mssql:
+        condition: service_started
+      oracle:
+        condition: service_started
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - MARIADB_HOST=mariadb
+      - MARIADB_PORT=3306
+      - MARIADB_USER=root
+      - MARIADB_PASSWORD=labpass
+      - MARIADB_DB=citizen
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=labpass
+      - POSTGRES_DB=citizen
+      - MSSQL_HOST=mssql
+      - MSSQL_PORT=1433
+      - MSSQL_USER=sa
+      - MSSQL_PASSWORD=Labpass_2024#
+      - MSSQL_DB=citizen
+      - ORACLE_HOST=oracle
+      - ORACLE_PORT=1521
+      - ORACLE_SERVICE=XEPDB1
+      - ORACLE_USER=system
+      - ORACLE_PASSWORD=labpass
+    restart: unless-stopped
+
+  mariadb:
+    image: mariadb:11
+    container_name: 06-sql-injection-mariadb
+    # secure-file-priv="" lets LOAD_FILE read the mounted notice for the file-read form.
+    command: ["--secure-file-priv=", "--local-infile=1"]
+    environment:
+      - MARIADB_ROOT_PASSWORD=labpass
+      - MARIADB_DATABASE=citizen
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - ./secrets:/labfiles:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16
+    container_name: 06-sql-injection-postgres
+    environment:
+      - POSTGRES_PASSWORD=labpass
+      - POSTGRES_DB=citizen
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./secrets:/labfiles:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d citizen"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: 06-sql-injection-mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Labpass_2024#
+      - MSSQL_PID=Developer
+    ports:
+      - "127.0.0.1:1433:1433"
+    restart: unless-stopped
+
+  oracle:
+    image: gvenzl/oracle-xe:21-slim-faststart
+    container_name: 06-sql-injection-oracle
+    environment:
+      - ORACLE_PASSWORD=labpass
+    ports:
+      - "127.0.0.1:1521:1521"
+    restart: unless-stopped

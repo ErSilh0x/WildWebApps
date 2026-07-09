@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ meta.label }} · Citizen Services · WildWebApps</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  .card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+  .card h3 { margin:0 0 6px; font-size:15px; color:#e6edf3; }
+  .card p.desc { color:#8b949e; font-size:12.5px; margin:.35rem 0 .7rem; line-height:1.5; }
+  table.kv { border-collapse:collapse; width:100%; font-size:12.5px; }
+  table.kv th, table.kv td { border:1px solid #30363d; padding:6px 10px; text-align:left; vertical-align:top; }
+  table.kv th { background:#0d1117; color:#00caff; white-space:nowrap; width:190px;
+                font-family:var(--font-mono,monospace); }
+  table.kv td { color:#c9d1d9; font-family:var(--font-mono,monospace); word-break:break-word; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .row .input { flex:1 1 200px; }
+  label.lbl { display:block; color:#c9d1d9; font-size:12px; margin:0 0 4px; }
+  .tagpill { font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:#00caff;
+             border:1px solid #00caff55; border-radius:999px; padding:2px 8px; margin-left:6px; }
+  .res { margin-top:12px; border-top:1px dashed #30363d; padding-top:10px; }
+  .res .sqlbox { font-family:var(--font-mono,monospace); font-size:12px; color:#00caff;
+                 background:#0d1117; border:1px solid #30363d; border-radius:6px;
+                 padding:8px 10px; overflow-x:auto; white-space:pre-wrap; word-break:break-word; }
+  table.rt { border-collapse:collapse; width:100%; margin-top:8px; font-size:12px; }
+  table.rt th, table.rt td { border:1px solid #30363d; padding:5px 8px; text-align:left;
+                             color:#c9d1d9; vertical-align:top; word-break:break-word; }
+  table.rt th { background:#0d1117; color:#00caff; font-family:var(--font-mono,monospace); }
+  .st-line { margin-top:8px; font-size:12.5px; color:#c9d1d9; }
+  .st-err { margin-top:8px; font-size:12px; color:#f85149; font-family:var(--font-mono,monospace);
+            white-space:pre-wrap; word-break:break-word; }
+</style>
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">{{ meta.label }}</span>
+</header>
+
+<main class="vk-shell">
+  <p><a href="{{ url_for('index') }}">&laquo; Back to the Citizen Services portal</a></p>
+  <h1>{{ meta.label }}</h1>
+  <p style="color:#8b949e;font-size:13px;">
+    Status: <b style="color:{{ '#3fb950' if status.ready else '#d29922' }};">
+    {{ 'ready' if status.ready else 'still starting…' }}</b>.
+    Every form below is scoped to this engine. Injection points are identical to the
+    portal, but here the payloads run only against {{ meta.label }} so you can focus
+    on one dialect.</p>
+
+  <div class="card">
+    <h3>Engineering reference</h3>
+    <table class="kv">
+      <tr><th>Default port</th><td>{{ meta.port }}</td></tr>
+      <tr><th>Default admin</th><td>{{ meta.admin }}</td></tr>
+      <tr><th>String concat</th><td>{{ meta.concat }}</td></tr>
+      <tr><th>Comment syntax</th><td>{{ meta.comment }}</td></tr>
+      <tr><th>Install path (Linux)</th><td>{{ meta.install }}</td></tr>
+      <tr><th>Main config</th><td>{{ meta.config }}</td></tr>
+      <tr><th>CLI client</th><td>{{ meta.client }}</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Enumeration on this engine</h3>
+    <table class="kv">
+      <tr><th>Version</th><td>{{ meta.version_fn }}</td></tr>
+      <tr><th>Current user</th><td>{{ meta.user_fn }}</td></tr>
+    </table>
+    <p class="desc" style="margin-top:8px;">Feed these (and the databases / tables /
+    columns queries from the writeup) through the forms below as UNION or error-based
+    payloads. Recover the flag from <code>user_table.password_hash</code>
+    (<code>wwa_admin</code>).</p>
+  </div>
+
+  {% for f in forms %}
+  <div class="card" id="form-{{ f.key }}">
+    <h3>{{ f.title }}<span class="tagpill">{{ f.tag }}</span></h3>
+    <p class="desc">{{ f.desc }}</p>
+    <form method="POST" action="{{ url_for('db_page', engine=engine) }}#form-{{ f.key }}">
+      <input type="hidden" name="form" value="{{ f.key }}">
+      <label class="lbl" for="q-{{ f.key }}">{{ f.label }} ({{ meta.label }})</label>
+      <div class="row">
+        <input class="input" id="q-{{ f.key }}" name="q" spellcheck="false"
+               autocomplete="off" placeholder="{{ f.placeholder }}"
+               value="{{ result.input if result and result.form == f.key else '' }}">
+        <button class="btn btn--primary" type="submit">Run</button>
+      </div>
+    </form>
+
+    {% if result and result.form == f.key %}
+    <div class="res">
+      <div class="sqlbox">{{ result.sql }}</div>
+      {% if result.not_ready %}
+        <div class="st-err">{{ result.error }}</div>
+      {% else %}
+        {% if result.status %}<div class="st-line">{{ result.status }}</div>{% endif %}
+        {% if result.error %}<div class="st-err">{{ result.error }}</div>{% endif %}
+        {% if result.columns and result.rows %}
+          <table class="rt">
+            <tr>{% for c in result.columns %}<th>{{ c }}</th>{% endfor %}</tr>
+            {% for r in result.rows %}
+              <tr>{% for cell in r %}<td>{{ cell }}</td>{% endfor %}</tr>
+            {% endfor %}
+          </table>
+        {% elif result.columns and not result.rows and not result.status and not result.error %}
+          <div class="st-line">Query ran; 0 rows returned.</div>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+</main>
+</body>
+</html>
