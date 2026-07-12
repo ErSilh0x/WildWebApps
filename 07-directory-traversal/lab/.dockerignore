@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.sqlite
+*.sqlite3
+flag.txt
+.DS_Store
+# The secret .env_backup is generated fresh at app startup (flag rotates);
+# never bake a stale one into the image.
+secret/

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  .grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+  @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+  .card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 16px; }
+  .card h3 { margin:0 0 4px; font-size:15px; color:#e6edf3; }
+  .card p.desc { color:#8b949e; font-size:12.5px; margin:.35rem 0 .7rem; line-height:1.5; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .row .input { flex:1 1 160px; }
+  label.lbl { display:block; color:#c9d1d9; font-size:12px; margin:0 0 4px; }
+  .samples { margin:0 0 8px; font-size:11.5px; color:#8b949e; }
+  .samples a { color:#00caff; text-decoration:none; margin-right:8px; font-family:var(--font-mono,monospace); }
+  .samples a:hover { text-decoration:underline; }
+  .tagpill { font-size:10.5px; font-family:var(--font-mono,monospace); color:#00caff;
+             border:1px solid #00caff55; border-radius:999px; padding:2px 8px; margin-left:6px; }
+  .res { margin-top:12px; border-top:1px dashed #30363d; padding-top:10px; }
+  .res .pathbox { font-family:var(--font-mono,monospace); font-size:11.5px; color:#00caff;
+                  background:#0d1117; border:1px solid #30363d; border-radius:6px;
+                  padding:6px 8px; overflow-x:auto; white-space:pre-wrap; word-break:break-all; }
+  .res pre.filebox { font-family:var(--font-mono,monospace); font-size:11.5px; color:#c9d1d9;
+                     background:#0d1117; border:1px solid #30363d; border-radius:6px;
+                     padding:8px 10px; margin-top:8px; max-height:280px; overflow:auto;
+                     white-space:pre-wrap; word-break:break-word; }
+  .res .st-err { margin-top:8px; font-size:12px; color:#f85149;
+                 font-family:var(--font-mono,monospace); white-space:pre-wrap; word-break:break-word; }
+  .res img.avatar { max-width:96px; max-height:96px; border:1px solid #30363d; border-radius:8px;
+                    margin-top:8px; background:#0d1117; }
+  .avatar-preview { margin:0 0 8px; }
+  .avatar-preview img { width:64px; height:64px; border:1px solid #30363d; border-radius:8px; background:#0d1117; }
+</style>
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">Directory Traversal</span>
+</header>
+
+<main class="vk-shell">
+  <h1>WildFiles Portal</h1>
+  <p>A small account portal with <b>three real file-operation sinks</b>. Each loads
+  a file named by your input, joining it onto a base directory and reading it with
+  <b>no confinement check</b>. Escape a base directory (relative <code>../</code>
+  climb or an absolute path) to read the <b>MD5 flag</b> in
+  <code>.env_backup</code>, a backup env file kept <b>outside the web root</b>, then
+  submit it below.</p>
+
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">How to solve</div>
+      <div class="alert__body">
+        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
+          {% for step in instructions %}<li style="margin-bottom:3px;">{{ step }}</li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">File-operation sinks</div>
+    <div class="grid">
+      {% for s in sinks %}
+      <div class="card" id="sink-{{ s.key }}">
+        <h3>{{ s.title }}<span class="tagpill">{{ s.tag }}</span></h3>
+        <p class="desc">{{ s.desc }}</p>
+
+        {% if s.key == 'img' %}
+        <div class="avatar-preview">
+          <img src="{{ url_for('avatar', img='avatar1.svg') }}" alt="avatar preview">
+        </div>
+        {% endif %}
+
+        <div class="samples">
+          try:
+          {% for sample in s.samples %}<a href="{{ url_for('index') }}?{{ s.key }}={{ sample }}#sink-{{ s.key }}">{{ sample }}</a>{% endfor %}
+        </div>
+
+        <form method="GET" action="{{ url_for('index') }}#sink-{{ s.key }}">
+          <label class="lbl" for="q-{{ s.key }}">{{ s.label }} (<code>{{ s.key }}</code>)</label>
+          <div class="row">
+            <input class="input" id="q-{{ s.key }}" name="{{ s.key }}" spellcheck="false"
+                   autocomplete="off" placeholder="{{ s.placeholder }}"
+                   value="{{ result.input if result and result.sink == s.key else '' }}">
+            <button class="btn btn--primary" type="submit">Read</button>
+          </div>
+        </form>
+
+        {% if result and result.sink == s.key %}
+        <div class="res">
+          <div class="pathbox">open({{ result.resolved }})</div>
+          {% if result.error %}
+            <div class="st-err">{{ result.error }}</div>
+          {% else %}
+            {% if result.image_data_uri %}
+              <img class="avatar" src="{{ result.image_data_uri }}" alt="loaded image">
+            {% endif %}
+            <pre class="filebox">{{ result.text }}</pre>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if hints %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Hints</div>
+    {% for hint in hints %}
+    <details class="hint"><summary>Hint {{ loop.index }}</summary>
+      <div class="hint__body">{{ hint }}</div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if languages %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Code examples</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="tabs" id="lang-tabs"></div>
+      <div class="tabs" id="view-tabs">
+        <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+        <button class="tab" type="button" data-view="fixed">Fixed</button>
+      </div>
+    </div>
+    <div id="code-mount"></div>
+  </div>
+  {% endif %}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Submit the flag</div>
+    <form class="flag-form" id="flag-form" autocomplete="off">
+      <input class="input" id="flag-input" name="flag"
+             placeholder="Paste the 32-char MD5 flag…" spellcheck="false">
+      <button class="btn btn--primary" type="submit">Check</button>
+    </form>
+    <div class="alert" id="flag-result" hidden></div>
+  </div>
+
+  {% if references %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">References</div>
+    <ul>
+      {% for label, url in references %}
+      <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} ↗</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</main>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

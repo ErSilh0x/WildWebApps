@@ -1,0 +1,10 @@
+WildFiles Portal - Receipt #001
+--------------------------------
+Account:   demo@wildfiles.local
+Plan:      Personal (lab)
+Amount:    $0.00
+Status:    PAID
+
+Thank you for trying the WildFiles Portal.
+
+(This is a sample account document served by the document download sink.)

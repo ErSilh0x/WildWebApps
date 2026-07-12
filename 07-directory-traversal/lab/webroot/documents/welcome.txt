@@ -1,0 +1,8 @@
+Welcome to WildFiles Portal!
+
+Your account is ready. From your profile you can set an avatar and download your
+account documents.
+
+Need help? This is a security lab, so there is no real support desk.
+
+(This is a sample account document served by the document download sink.)

@@ -1,0 +1,15 @@
+# Named after the folder slug so the image and container show up as the
+# vulnerability (07-directory-traversal) instead of the default lab-lab.
+name: 07-directory-traversal
+services:
+  lab:
+    build: .
+    image: 07-directory-traversal:latest
+    container_name: 07-directory-traversal
+    # Publish on the host loopback only - never exposed to the network.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped

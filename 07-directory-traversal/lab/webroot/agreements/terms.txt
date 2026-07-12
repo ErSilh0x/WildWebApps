@@ -1,0 +1,19 @@
+WildFiles Portal - Terms of Service
+
+1. Acceptance
+By creating an account you agree to these terms. WildFiles provides personal
+file storage for demonstration purposes only.
+
+2. Accounts
+You are responsible for keeping your credentials secret and for all activity
+under your account.
+
+3. Acceptable use
+Do not upload unlawful content. Do not attempt to access files that do not
+belong to you.
+
+4. No warranty
+The service is provided "as is" for this security lab. Do not store real or
+sensitive data here.
+
+(This is sample agreement text loaded by the registration agreement viewer.)

@@ -1,0 +1,11 @@
+WildFiles Portal - Privacy Notice
+
+We collect the minimum data needed to run this demonstration account portal:
+your username and a hashed password.
+
+We do not sell data. This is a security lab, so treat all data here as public
+and never enter real personal information.
+
+Cookies: a single session cookie keeps you signed in.
+
+(This is sample privacy text loaded by the registration agreement viewer.)
