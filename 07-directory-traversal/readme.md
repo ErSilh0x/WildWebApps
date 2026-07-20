@@ -193,7 +193,7 @@ executed (log poisoning).
 
 **Linux / Unix**
 
-| File | Valuable findings |
+| File | Why it is valuable |
 |---|---|
 | `/etc/passwd` | user accounts, home dirs, shells (world-readable, the canonical proof of traversal) |
 | `/etc/shadow` | password hashes (root-readable only, a real prize if the web user is privileged) |
@@ -206,7 +206,7 @@ executed (log poisoning).
 
 **Windows**
 
-| File | Valuable findings |
+| File | Why it is valuable |
 |---|---|
 | `C:\Windows\win.ini`, `C:\Windows\System32\drivers\etc\hosts` | low-privilege, reliable proof of traversal |
 | `C:\Windows\System32\config\SAM`, `SYSTEM` | local account hashes (usually locked while running; try shadow copies) |
@@ -217,7 +217,7 @@ executed (log poisoning).
 
 **macOS**
 
-| File | Valuable findings |
+| File | Why it is valuable |
 |---|---|
 | `/etc/passwd`, `/etc/hosts` | present as on Unix (account hashes live in the DirectoryService / `.plist` store, not `/etc/shadow`) |
 | `/etc/apache2/httpd.conf` | the bundled Apache config |

@@ -33,6 +33,9 @@
                     margin-top:8px; background:#0d1117; }
   .avatar-preview { margin:0 0 8px; }
   .avatar-preview img { width:64px; height:64px; border:1px solid #30363d; border-radius:8px; background:#0d1117; }
+  .attack-diagram { margin:0 0 14px; border:1px solid #30363d; border-radius:10px; overflow:hidden; background:#0d1117; }
+  .attack-diagram img { display:block; width:100%; height:auto; }
+  .attack-diagram .cap { color:#8b949e; font-size:12px; padding:8px 12px; border-top:1px solid #30363d; }
 </style>
 </head>
 <body>
@@ -51,6 +54,17 @@
   climb or an absolute path) to read the <b>MD5 flag</b> in
   <code>.env_backup</code>, a backup env file kept <b>outside the web root</b>, then
   submit it below.</p>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Attack sequence</div>
+    <figure class="attack-diagram">
+      <img src="{{ url_for('static', filename='diagram.svg') }}"
+           alt="Directory traversal attack sequence: a file-download parameter is joined onto a base directory and opened with no confinement check, so a ../ climb escapes the directory and reads /etc/passwd and other sensitive files.">
+      <figcaption class="cap">How directory traversal works: a file-name parameter is joined onto a
+      base directory and opened with no check, so <code>../</code> (or an absolute path, or an
+      encoded variant) escapes the directory and reads files anywhere the web process can reach.</figcaption>
+    </figure>
+  </div>
 
   <div class="alert alert--info">
     <div>
@@ -88,7 +102,7 @@
             <input class="input" id="q-{{ s.key }}" name="{{ s.key }}" spellcheck="false"
                    autocomplete="off" placeholder="{{ s.placeholder }}"
                    value="{{ result.input if result and result.sink == s.key else '' }}">
-            <button class="btn btn--primary" type="submit">Read</button>
+            <button class="btn btn--primary" type="submit">Fetch</button>
           </div>
         </form>
 

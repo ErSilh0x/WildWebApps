@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 720" font-family="'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#00caff"/>
+    </marker>
+    <marker id="arwR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#f85149"/>
+    </marker>
+    <marker id="arwG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="940" height="720" fill="#0d1117"/>
+  <text x="30" y="38" fill="#e6edf3" font-size="21" font-weight="700">Directory Traversal &#183; attack sequence</text>
+  <text x="30" y="60" fill="#8b949e" font-size="12.5">A file name from the request is joined onto a base directory and opened with no confinement check,</text>
+  <text x="30" y="77" fill="#8b949e" font-size="12.5">so the input escapes that directory. The red steps are the vulnerable ones.</text>
+
+  <!-- Lifeline heads -->
+  <g font-size="14" font-weight="700" text-anchor="middle">
+    <rect x="70" y="98" width="150" height="42" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="145" y="124" fill="#f85149">Attacker</text>
+    <rect x="395" y="98" width="200" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="495" y="118" fill="#e6edf3">Web application</text>
+    <text x="495" y="134" fill="#8b949e" font-size="11" font-weight="400">document download endpoint</text>
+    <rect x="748" y="98" width="164" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="830" y="118" fill="#e6edf3">Server filesystem</text>
+    <text x="830" y="134" fill="#8b949e" font-size="11" font-weight="400">web root + rest of disk</text>
+  </g>
+
+  <!-- Lifelines -->
+  <g stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 4">
+    <line x1="145" y1="140" x2="145" y2="672"/>
+    <line x1="495" y1="140" x2="495" y2="672"/>
+    <line x1="830" y1="140" x2="830" y2="672"/>
+  </g>
+
+  <!-- Messages -->
+  <g font-size="12.5">
+    <!-- 1 legit request -->
+    <line x1="145" y1="182" x2="493" y2="182" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="150" y="175" fill="#e6edf3">1. Normal use: <tspan font-family="monospace" fill="#00caff">GET /download?file=report.pdf</tspan></text>
+
+    <!-- 2 base + name read -->
+    <line x1="495" y1="220" x2="828" y2="220" stroke="#8b949e" stroke-width="1.6" marker-end="url(#arwG)"/>
+    <text x="500" y="213" fill="#8b949e" font-family="monospace" font-size="11">open("/var/www/files/" + "report.pdf")</text>
+
+    <!-- 3 file back -->
+    <line x1="830" y1="258" x2="497" y2="258" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+    <text x="663" y="251" fill="#8b949e" text-anchor="middle">3. report.pdf returned (the parameter reads files from disk)</text>
+
+    <!-- 4 traversal payload -->
+    <line x1="145" y1="304" x2="493" y2="304" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="150" y="297" fill="#f85149" font-weight="600">4. Inject: <tspan font-family="monospace">?file=../../../../etc/passwd</tspan></text>
+    <text x="150" y="319" fill="#8b949e" font-family="monospace" font-size="11">also: /etc/passwd (absolute), %2e%2e%2f (URL-encoded)</text>
+
+    <!-- 5 vulnerable read -->
+    <line x1="495" y1="356" x2="828" y2="356" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="500" y="349" fill="#f85149" font-weight="600">5. VULNERABLE: <tspan font-family="monospace">open(base + "../../etc/passwd")</tspan></text>
+    <text x="500" y="371" fill="#8b949e" font-family="monospace" font-size="11">OS resolves ".." before opening, escaping /var/www/files</text>
+
+    <!-- 6 sensitive file back -->
+    <line x1="830" y1="410" x2="497" y2="410" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="663" y="403" fill="#8b949e" text-anchor="middle">6. /etc/passwd contents read from disk</text>
+
+    <!-- 7 exfil to attacker -->
+    <line x1="495" y1="450" x2="147" y2="450" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+    <text x="321" y="443" fill="#8b949e" text-anchor="middle">7. arbitrary file served back to the attacker</text>
+
+    <!-- pivot note -->
+    <rect x="145" y="472" width="690" height="30" rx="6" fill="#161b22" stroke="#30363d"/>
+    <text x="158" y="491" fill="#c9d1d9" font-size="11.5">Pivot targets: <tspan font-family="monospace" fill="#00caff">app config</tspan> &#183; <tspan font-family="monospace" fill="#00caff">.env</tspan> &#183; <tspan font-family="monospace" fill="#00caff">.git/config</tspan> &#183; <tspan font-family="monospace" fill="#00caff">~/.ssh/id_rsa</tspan> &#183; <tspan font-family="monospace" fill="#00caff">/proc/self/environ</tspan></text>
+
+    <!-- outcome box -->
+    <rect x="145" y="518" width="690" height="92" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="160" y="542" fill="#f85149" font-size="13" font-weight="700">Outcome</text>
+    <text x="160" y="562" fill="#c9d1d9" font-size="12">The attacker reads any file the web process can access: source, config,</text>
+    <text x="160" y="579" fill="#c9d1d9" font-size="12">credentials, private keys, well outside the intended directory.</text>
+    <text x="160" y="599" fill="#8b949e" font-size="11.5">Fix: resolve the joined path (realpath) and confirm it is inside the base directory before opening.</text>
+
+    <!-- legend -->
+    <g font-size="11">
+      <line x1="150" y1="642" x2="180" y2="642" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+      <text x="187" y="646" fill="#8b949e">legitimate request</text>
+      <line x1="320" y1="642" x2="350" y2="642" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+      <text x="357" y="646" fill="#ff6b6b">vulnerable step</text>
+      <line x1="495" y1="642" x2="525" y2="642" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+      <text x="532" y="646" fill="#8b949e">response / data</text>
+    </g>
+  </g>
+</svg>
