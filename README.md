@@ -31,6 +31,8 @@ break it in a lab, and learn to fix it.
 | 05 | [Cross-Site Request Forgery (CSRF)](05-csrf/) | `A01:2025 – Broken Access Control` | [Run](05-csrf/lab/) | Ready |
 | 06 | [SQL Injection](06-sql-injection/) | `A05:2025 – Injection` | [Run](06-sql-injection/lab/) | Ready |
 | 07 | [Directory Traversal (Path Traversal)](07-directory-traversal/) | `A01:2025 – Broken Access Control` | [Run](07-directory-traversal/lab/) | Ready |
+| 08 | [Server-Side Template Injection (SSTI)](08-ssti/) | `A05:2025 – Injection` | [Run](08-ssti/lab/) | Ready |
+| 09 | [XML External Entity (XXE) Injection](09-xxe/) | `A05:2025 – Injection` | [Run](09-xxe/lab/) | Ready |
 
 <!-- Index rows are added per vulnerability; later auto-generated (C11). -->
 

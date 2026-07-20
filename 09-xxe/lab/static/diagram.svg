@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 740" font-family="'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#00caff"/>
+    </marker>
+    <marker id="arwR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#f85149"/>
+    </marker>
+    <marker id="arwG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="940" height="740" fill="#0d1117"/>
+  <text x="30" y="38" fill="#e6edf3" font-size="21" font-weight="700">XML External Entity (XXE) &#183; attack sequence</text>
+  <text x="30" y="60" fill="#8b949e" font-size="12.5">The submitted XML declares an external entity pointing at a local file. The parser resolves it, reads the file,</text>
+  <text x="30" y="77" fill="#8b949e" font-size="12.5">and the contents leak back inside the application error message. The red steps are the vulnerable ones.</text>
+
+  <!-- Lifeline heads -->
+  <g font-size="14" font-weight="700" text-anchor="middle">
+    <rect x="60" y="98" width="150" height="42" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="135" y="124" fill="#f85149">Attacker</text>
+    <rect x="380" y="98" width="210" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="485" y="118" fill="#e6edf3">Web app + XML parser</text>
+    <text x="485" y="134" fill="#8b949e" font-size="11" font-weight="400">stock-check endpoint, entities ON</text>
+    <rect x="748" y="98" width="164" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="830" y="118" fill="#e6edf3">Server filesystem</text>
+    <text x="830" y="134" fill="#8b949e" font-size="11" font-weight="400">/etc/passwd, keys, config</text>
+  </g>
+
+  <!-- Lifelines -->
+  <g stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 4">
+    <line x1="135" y1="140" x2="135" y2="694"/>
+    <line x1="485" y1="140" x2="485" y2="694"/>
+    <line x1="830" y1="140" x2="830" y2="694"/>
+  </g>
+
+  <!-- Messages -->
+  <g font-size="12.5">
+    <!-- 1 legit request -->
+    <line x1="135" y1="182" x2="483" y2="182" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="140" y="175" fill="#e6edf3">1. Normal use: POST XML <tspan font-family="monospace" fill="#00caff">&lt;productId&gt;3&lt;/productId&gt;</tspan></text>
+
+    <!-- 2 lookup -->
+    <line x1="485" y1="216" x2="483" y2="216" stroke="#8b949e" stroke-width="0"/>
+    <text x="490" y="211" fill="#8b949e" font-family="monospace" font-size="11">parse XML, look up product id 3 in the catalogue</text>
+
+    <!-- 3 stock back -->
+    <line x1="485" y1="246" x2="137" y2="246" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+    <text x="311" y="239" fill="#8b949e" text-anchor="middle">3. "In stock: 8 units" (only errors quote your value back)</text>
+
+    <!-- 4 XXE payload -->
+    <line x1="135" y1="292" x2="483" y2="292" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="140" y="285" fill="#f85149" font-weight="600">4. Inject: <tspan font-family="monospace">&lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;</tspan></text>
+    <text x="140" y="307" fill="#8b949e" font-family="monospace" font-size="11">reference &amp;xxe; inside &lt;productId&gt;</text>
+
+    <!-- 5 vulnerable read -->
+    <line x1="485" y1="344" x2="828" y2="344" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="490" y="337" fill="#f85149" font-weight="600">5. VULNERABLE: parser resolves the external entity</text>
+    <text x="490" y="359" fill="#8b949e" font-family="monospace" font-size="11">resolve_entities=True reads file:///etc/passwd</text>
+
+    <!-- 6 file content back into doc -->
+    <line x1="830" y1="398" x2="487" y2="398" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="658" y="391" fill="#8b949e" text-anchor="middle">6. file contents spliced into &lt;productId&gt;</text>
+
+    <!-- 7 error-based exfil to attacker -->
+    <line x1="485" y1="438" x2="137" y2="438" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="311" y="431" fill="#8b949e" text-anchor="middle">7. lookup fails -&gt; error quotes the file back (error-based leak)</text>
+
+    <!-- pivot note -->
+    <rect x="135" y="462" width="700" height="30" rx="6" fill="#161b22" stroke="#30363d"/>
+    <text x="148" y="481" fill="#c9d1d9" font-size="11.5">Also reachable via XXE: <tspan font-family="monospace" fill="#00caff">SSRF</tspan> (http:// to internal hosts) &#183; <tspan font-family="monospace" fill="#00caff">blind/OOB</tspan> exfil (external DTD) &#183; <tspan font-family="monospace" fill="#00caff">billion laughs</tspan> DoS</text>
+
+    <!-- outcome box -->
+    <rect x="135" y="508" width="700" height="96" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="150" y="532" fill="#f85149" font-size="13" font-weight="700">Outcome</text>
+    <text x="150" y="552" fill="#c9d1d9" font-size="12">The attacker reads any file the parser process can access: /etc/passwd, source,</text>
+    <text x="150" y="569" fill="#c9d1d9" font-size="12">config, private keys, and can reach internal services (SSRF) from the server.</text>
+    <text x="150" y="592" fill="#8b949e" font-size="11.5">Fix: disable DTD processing and external-entity resolution before parsing untrusted XML.</text>
+
+    <!-- legend -->
+    <g font-size="11">
+      <line x1="150" y1="640" x2="180" y2="640" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+      <text x="187" y="644" fill="#8b949e">legitimate request</text>
+      <line x1="320" y1="640" x2="350" y2="640" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+      <text x="357" y="644" fill="#ff6b6b">vulnerable step</text>
+      <line x1="495" y1="640" x2="525" y2="640" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+      <text x="532" y="644" fill="#8b949e">response / data</text>
+    </g>
+  </g>
+</svg>

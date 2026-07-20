@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · WildWebApps Lab</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  .xmlform { margin:0; }
+  label.lbl { display:block; color:#c9d1d9; font-size:12px; margin:0 0 6px; }
+  textarea.xmlbox {
+    width:100%; box-sizing:border-box; min-height:230px; resize:vertical;
+    font-family:var(--font-mono,monospace); font-size:13px; line-height:1.5;
+    color:#c9d1d9; background:#0d1117; border:1px solid #30363d; border-radius:8px;
+    padding:12px 14px; spellcheck:false; tab-size:2;
+  }
+  textarea.xmlbox:focus { outline:none; border-color:#00caff; }
+  .formbar { display:flex; gap:8px; align-items:center; margin-top:10px; }
+  .formbar .hintline { color:#8b949e; font-size:12px; }
+  .res { margin-top:16px; }
+  .res .res-title { font-size:12px; text-transform:uppercase; letter-spacing:.05em;
+                    color:#8b949e; margin:0 0 6px; }
+  .res pre.leakbox { font-family:var(--font-mono,monospace); font-size:12px; color:#c9d1d9;
+                     background:#0d1117; border:1px solid #30363d; border-radius:6px;
+                     padding:10px 12px; margin:0; max-height:320px; overflow:auto;
+                     white-space:pre-wrap; word-break:break-word; }
+  .res .err-head { font-family:var(--font-mono,monospace); font-size:12.5px; color:#f85149;
+                   margin:0 0 6px; word-break:break-word; }
+  .res .ok-head { font-family:var(--font-mono,monospace); font-size:13px; color:#3fb950;
+                  margin:0 0 6px; }
+  .attack-diagram { margin:0 0 14px; border:1px solid #30363d; border-radius:10px; overflow:hidden; background:#0d1117; }
+  .attack-diagram img { display:block; width:100%; height:auto; }
+  .attack-diagram .cap { color:#8b949e; font-size:12px; padding:8px 12px; border-top:1px solid #30363d; }
+</style>
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">XML External Entity (XXE)</span>
+</header>
+
+<main class="vk-shell">
+  <h1>WildParts Store</h1>
+  <p>The store's <b>Check stock</b> feature parses an <b>XML document you control</b>
+  with an unsafe parser that <b>resolves external entities</b>. Declare an entity
+  that points at a local file (<code>file:///etc/passwd</code>), reference it inside
+  <code>&lt;productId&gt;</code>, and the parser reads that file into the document.
+  The lookup then fails and the app <b>quotes your value back in an error message</b>:
+  that error is where the file (and the <b>MD5 flag</b>) leaks out. This is
+  <b>error-based</b> exfiltration.</p>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Attack sequence</div>
+    <figure class="attack-diagram">
+      <img src="{{ url_for('static', filename='diagram.svg') }}"
+           alt="XXE attack sequence: the attacker submits an XML document with a DOCTYPE that declares an external entity pointing at file:///etc/passwd; the server's XML parser resolves the entity, reads the file, and the contents leak back inside an application error message.">
+      <figcaption class="cap">How XXE works: the submitted XML declares an external entity
+      (<code>&lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;</code>); the parser resolves it,
+      reads the file, and its contents surface in the error the app returns.</figcaption>
+    </figure>
+  </div>
+
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">How to solve</div>
+      <div class="alert__body">
+        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
+          {% for step in instructions %}<li style="margin-bottom:3px;">{{ step }}</li>{% endfor %}
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Check stock (XML request)</div>
+    <form class="xmlform" method="POST" action="{{ url_for('index') }}">
+      <label class="lbl" for="xml">POST body parsed as XML by the server. Edit it freely:</label>
+      <textarea class="xmlbox" id="xml" name="xml" spellcheck="false"
+                autocomplete="off">{{ submitted_xml }}</textarea>
+      <div class="formbar">
+        <button class="btn btn--primary" type="submit">Check stock</button>
+        <span class="hintline">Tip: add a <code>&lt;!DOCTYPE&gt;</code> with an entity, then reference it in <code>&lt;productId&gt;</code>.</span>
+      </div>
+    </form>
+
+    {% if result %}
+    <div class="res">
+      {% if result.stock is defined %}
+        <p class="res-title">Result</p>
+        <div class="ok-head">In stock: {{ result.stock }} unit(s) of "{{ result.name }}" (product id {{ result.product_id }})</div>
+      {% elif result.parse_error is defined %}
+        <p class="res-title">XML parser error</p>
+        <div class="err-head">{{ result.parse_error }}</div>
+        {% if result.log %}
+        <pre class="leakbox">{% for line in result.log %}{{ line }}
+{% endfor %}</pre>
+        {% endif %}
+      {% elif result.error is defined %}
+        <p class="res-title">Application error</p>
+        <pre class="leakbox">{{ result.error }} '{{ result.value }}'</pre>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if hints %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Hints</div>
+    {% for hint in hints %}
+    <details class="hint"><summary>Hint {{ loop.index }}</summary>
+      <div class="hint__body"><pre style="white-space:pre-wrap;font-family:var(--font-mono,monospace);font-size:12px;margin:0;color:#c9d1d9;">{{ hint }}</pre></div>
+    </details>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if languages %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Code examples</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="tabs" id="lang-tabs"></div>
+      <div class="tabs" id="view-tabs">
+        <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+        <button class="tab" type="button" data-view="fixed">Fixed</button>
+      </div>
+    </div>
+    <div id="code-mount"></div>
+  </div>
+  {% endif %}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Submit the flag</div>
+    <form class="flag-form" id="flag-form" autocomplete="off">
+      <input class="input" id="flag-input" name="flag"
+             placeholder="Paste the 32-char MD5 flag…" spellcheck="false">
+      <button class="btn btn--primary" type="submit">Check</button>
+    </form>
+    <div class="alert" id="flag-result" hidden></div>
+  </div>
+
+  {% if references %}
+  <div class="vk-section">
+    <div class="vk-eyebrow">References</div>
+    <ul>
+      {% for label, url in references %}
+      <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} ↗</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+</main>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
