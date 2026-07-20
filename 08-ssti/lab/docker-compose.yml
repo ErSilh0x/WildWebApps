@@ -1,0 +1,15 @@
+# Named after the folder slug so the image and container show up as the
+# vulnerability (08-ssti) instead of the default lab-lab.
+name: 08-ssti
+services:
+  lab:
+    build: .
+    image: 08-ssti:latest
+    container_name: 08-ssti
+    # Publish on the host loopback only - never exposed to the network.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped

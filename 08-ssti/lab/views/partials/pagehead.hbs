@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}} · WildWebApps Lab</title>
+<link rel="stylesheet" href="/wildwebapps.css">
+<style>
+  .welcome { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:22px 24px; margin-bottom:18px; }
+  .welcome h1 { margin:0 0 6px; }
+  .welcome p { color:#8b949e; margin:.3rem 0; line-height:1.55; }
+  .menu { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:10px; }
+  .menu li a, .menu li button { display:block; background:#161b22; border:1px solid #30363d; border-radius:8px;
+                    padding:10px 14px; color:#c9d1d9; text-decoration:none; font-size:14px; cursor:pointer;
+                    font-family:inherit; }
+  .menu li a:hover, .menu li button:hover { border-color:#00caff; color:#e6edf3; }
+  .attack-diagram { margin:0 0 14px; border:1px solid #30363d; border-radius:10px; overflow:hidden; background:#0d1117; }
+  .attack-diagram img { display:block; width:100%; height:auto; }
+  .attack-diagram .cap { color:#8b949e; font-size:12px; padding:8px 12px; border-top:1px solid #30363d; }
+  .tmpl-form textarea { width:100%; box-sizing:border-box; min-height:120px; resize:vertical;
+                  background:#0d1117; color:#c9d1d9; border:1px solid #30363d; border-radius:8px;
+                  padding:10px 12px; font-family:var(--font-mono,monospace); font-size:13px; line-height:1.5; }
+  .preview { margin-top:14px; border-top:1px dashed #30363d; padding-top:12px; }
+  .preview .lbl { color:#8b949e; font-size:12px; margin:0 0 6px; }
+  .preview pre { background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:10px 12px;
+                 color:#c9d1d9; font-family:var(--font-mono,monospace); font-size:12.5px;
+                 white-space:pre-wrap; word-break:break-word; max-height:320px; overflow:auto; margin:0; }
+  .preview pre.err { color:#f85149; }
+  .egtable { width:100%; border-collapse:collapse; font-size:12.5px; margin:.4rem 0; }
+  .egtable th, .egtable td { border:1px solid #30363d; padding:6px 9px; text-align:left; vertical-align:top; }
+  .egtable th { background:#161b22; color:#e6edf3; }
+  .egtable td code, .egtable th code { font-family:var(--font-mono,monospace); color:#00caff; }
+</style>
+</head>
+<body>
+
+<header class="vk-header">
+  <span class="vk-mark">&gt;_</span>
+  <span class="vk-wordmark">WildWebApps</span>
+  <span class="badge badge--cyan">{{badge}}</span>
+</header>
+
+<main class="vk-shell">

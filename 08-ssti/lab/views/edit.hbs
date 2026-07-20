@@ -1,0 +1,54 @@
+{{> pagehead title="Edit Page Template" badge="Template editor"}}
+
+  <div class="welcome">
+    <h1>Edit Page Template</h1>
+    <p>This editor compiles your template on the server with <b>Handlebars</b> and
+    shows the result. The variables available to a normal template are
+    <code>siteName</code>, <code>tagline</code>, and <code>user</code>.</p>
+    <p style="color:#f85149;">Because your input is compiled as a template (not
+    passed as data), any Handlebars expression you write runs on the server.</p>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Fingerprint probes (identify the engine)</div>
+    <p style="color:#8b949e;font-size:12.5px;margin:.2rem 0 .6rem;">
+    Send each probe and watch the output. The pattern of what evaluates, what
+    renders literally, and what error you get points at the engine.</p>
+    <table class="egtable">
+      <thead><tr><th>Probe</th><th>What it tells you</th></tr></thead>
+      <tbody>
+        {{#each probes}}
+        <tr><td><code>{{this.payload}}</code></td><td>{{this.note}}</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Template source</div>
+    <form class="tmpl-form" method="POST" action="/admin/edit-template">
+      <textarea name="template" spellcheck="false" autocomplete="off"
+                placeholder="Hello &#123;&#123;user.name&#125;&#125;, welcome to &#123;&#123;siteName&#125;&#125;">{{source}}</textarea>
+      <div style="margin-top:10px;">
+        <button class="btn btn--primary" type="submit">Render preview</button>
+      </div>
+    </form>
+
+    {{#if submitted}}
+    <div class="preview">
+      {{#if error}}
+        <div class="lbl">Server error (the engine could not parse or run your template):</div>
+        <pre class="err">{{error}}</pre>
+      {{else}}
+        <div class="lbl">Rendered output (returned by the server):</div>
+        <pre>{{rendered}}</pre>
+      {{/if}}
+    </div>
+    {{/if}}
+  </div>
+
+  <p style="color:#8b949e;font-size:12px;">
+  Found the flag? Close this window and paste it into the flag box on the front
+  page.</p>
+
+{{> pagefoot}}

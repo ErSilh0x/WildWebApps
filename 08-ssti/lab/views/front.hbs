@@ -1,0 +1,95 @@
+{{> pagehead title="WildPortal - Home" badge="SSTI"}}
+
+  <div class="welcome">
+    <h1>Hello and welcome to {{siteName}}</h1>
+    <p>{{tagline}}</p>
+    <p>You are browsing as <b>{{user.name}}</b>. This is the public front page.
+    Site administrators can customise how pages are rendered from the admin area.</p>
+    <ul class="menu" style="margin-top:14px;">
+      <li><a href="/admin">Go to the admin area &rarr;</a></li>
+    </ul>
+  </div>
+
+  <p style="color:#8b949e;font-size:13px;">
+  This front page is one of three pages in the lab app. The admin area has an
+  <b>Edit Page Template</b> feature that compiles an administrator-supplied
+  <b>Handlebars</b> template on the server. That feature is the vulnerable one.
+  Everything below is the WildWebApps lab panel: how to solve it, the attack
+  diagram, hints, code, and the flag box.</p>
+
+  <div class="alert alert--info">
+    <div>
+      <div class="alert__title">How to solve</div>
+      <div class="alert__body">
+        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
+          {{#each instructions}}<li style="margin-bottom:3px;">{{this}}</li>{{/each}}
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Attack sequence</div>
+    <figure class="attack-diagram">
+      <img src="/diagram.svg"
+           alt="Server-side template injection attack sequence: an admin-supplied template string is compiled and executed by Handlebars on the server, and a custom read helper turns the injection into arbitrary file read of /root/.bashrc.">
+      <figcaption class="cap">How SSTI works here: the Edit Page Template form compiles your input
+      as a Handlebars template on the server. A custom <code>read</code> helper turns that template
+      injection into arbitrary file read, reaching the flag in <code>/root/.bashrc</code>.</figcaption>
+    </figure>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Start here</div>
+    <ul class="menu">
+      <li><a href="/admin">Open the admin area, then click "Edit Page Template"</a></li>
+    </ul>
+  </div>
+
+  {{#if hints.length}}
+  <div class="vk-section">
+    <div class="vk-eyebrow">Hints</div>
+    {{#each hints}}
+    <details class="hint"><summary>Hint {{inc @index}}</summary>
+      <div class="hint__body">{{this}}</div>
+    </details>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Code examples</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="tabs" id="lang-tabs"></div>
+      <div class="tabs" id="view-tabs">
+        <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+        <button class="tab" type="button" data-view="fixed">Fixed</button>
+      </div>
+    </div>
+    <div id="code-mount"></div>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Submit the flag</div>
+    <form class="flag-form" id="flag-form" autocomplete="off">
+      <input class="input" id="flag-input" name="flag"
+             placeholder="Paste the 32-char MD5 flag…" spellcheck="false">
+      <button class="btn btn--primary" type="submit">Check</button>
+    </form>
+    <div class="alert" id="flag-result" hidden></div>
+  </div>
+
+  {{#if references.length}}
+  <div class="vk-section">
+    <div class="vk-eyebrow">References</div>
+    <ul>
+      {{#each references}}
+      <li><a href="{{this.url}}" target="_blank" rel="noopener">{{this.label}} &#8599;</a></li>
+      {{/each}}
+    </ul>
+  </div>
+  {{/if}}
+
+<script id="lab-data" type="application/json">{{{languagesJson}}}</script>
+<script src="/app.js"></script>
+{{> pagefoot}}

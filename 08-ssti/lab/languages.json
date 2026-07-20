@@ -1,0 +1,42 @@
+{
+  "Python (Jinja2)": {
+    "vuln": "# VULNERABLE: user input is compiled AS A TEMPLATE and executed\nfrom flask import request, render_template_string\nname = request.args['name']\nreturn render_template_string('Hello ' + name)   # {{7*7}} -> 49, {{...}} -> RCE",
+    "fixed": "# FIXED: user input is DATA passed into a fixed template, never compiled\nfrom flask import request, render_template\nname = request.args['name']\nreturn render_template('hello.html', name=name)  # {{ name }} is escaped, not run",
+    "doc": "https://flask.palletsprojects.com/en/latest/quickstart/#rendering-templates"
+  },
+  "Java (FreeMarker)": {
+    "vuln": "// VULNERABLE: request value parsed as a FreeMarker template and processed\nTemplate t = new Template(\"page\", new StringReader(request.getParameter(\"tpl\")), cfg);\nt.process(model, out);   // <#assign ...> / ?new() gadgets -> RCE",
+    "fixed": "// FIXED: load a fixed template from disk; the request value is only data\nTemplate t = cfg.getTemplate(\"page.ftl\");\nmodel.put(\"name\", request.getParameter(\"name\"));\nt.process(model, out);   // ${name} is inserted as data, not executed",
+    "doc": "https://freemarker.apache.org/docs/pgui_quickstart_all.html"
+  },
+  "JavaScript (Handlebars)": {
+    "vuln": "// VULNERABLE: user input compiled as a template and run (this lab)\nconst tpl = Handlebars.compile(req.body.template);\nres.send(tpl(context));   // {{read \"/root/.bashrc\"}} -> arbitrary file read",
+    "fixed": "// FIXED: precompile a FIXED template; user input is only context data\nconst tpl = Handlebars.compile('Hello {{name}}');   // compiled once, trusted\nres.send(tpl({ name: req.body.name }));   // {{name}} is escaped, never run",
+    "doc": "https://handlebarsjs.com/guide/expressions.html"
+  },
+  "TypeScript (Handlebars)": {
+    "vuln": "// VULNERABLE: types do not stop SSTI - input is still compiled as a template\nconst tpl = Handlebars.compile(req.body.template as string);\nres.send(tpl(context));",
+    "fixed": "// FIXED: fixed template, user value passed as data\nconst tpl = Handlebars.compile('Hello {{name}}');\nres.send(tpl({ name: String(req.body.name) }));",
+    "doc": "https://handlebarsjs.com/guide/expressions.html"
+  },
+  "PHP (Twig)": {
+    "vuln": "// VULNERABLE: user input built into a template string, then rendered\n$tpl = $twig->createTemplate('Hello ' . $_GET['name']);\necho $tpl->render();   // {{7*7}} -> 49, {{_self...}} / filters -> RCE",
+    "fixed": "// FIXED: render a fixed template file; user input is a variable (data)\necho $twig->render('hello.twig', ['name' => $_GET['name']]);\n// {{ name }} is auto-escaped and never executed",
+    "doc": "https://twig.symfony.com/doc/3.x/api.html"
+  },
+  "Ruby (ERB)": {
+    "vuln": "# VULNERABLE: user input parsed as an ERB template and evaluated\nrequire 'erb'\nERB.new(params[:tpl]).result(binding)   # <%= system('id') %> -> RCE",
+    "fixed": "# FIXED: fixed .erb template; user input is a local variable (data)\ntemplate = ERB.new(File.read('views/hello.erb'))\nname = params[:name]\ntemplate.result(binding)   # <%= ERB::Util.html_escape(name) %>",
+    "doc": "https://docs.ruby-lang.org/en/3.3/ERB.html"
+  },
+  "Go (html/template)": {
+    "vuln": "// VULNERABLE: user input parsed as a template definition, then executed\nt := template.Must(template.New(\"p\").Parse(r.FormValue(\"tpl\")))\nt.Execute(w, data)   // {{.Secret}} / method calls exposed via the pipeline",
+    "fixed": "// FIXED: parse a FIXED template; user input flows in only as data\nt := template.Must(template.ParseFiles(\"hello.tmpl\"))\nt.Execute(w, map[string]string{\"Name\": r.FormValue(\"name\")})\n// html/template auto-escapes {{.Name}} as data",
+    "doc": "https://pkg.go.dev/html/template"
+  },
+  "C# (Razor)": {
+    "vuln": "// VULNERABLE: user input compiled and run as a Razor template\nvar result = Engine.Razor.RunCompile(Request.Query[\"tpl\"], \"k\", null, model);\n// @{ System.Diagnostics.Process.Start(...) } -> RCE",
+    "fixed": "// FIXED: fixed .cshtml view; user input is model data, auto-encoded\nreturn View(\"Hello\", new HelloModel { Name = Request.Query[\"name\"] });\n// @Model.Name is HTML-encoded and never executed",
+    "doc": "https://learn.microsoft.com/en-us/aspnet/core/mvc/views/razor"
+  }
+}

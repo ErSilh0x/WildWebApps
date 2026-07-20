@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 760" font-family="'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#00caff"/>
+    </marker>
+    <marker id="arwR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#f85149"/>
+    </marker>
+    <marker id="arwG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="960" height="760" fill="#0d1117"/>
+  <text x="30" y="38" fill="#e6edf3" font-size="21" font-weight="700">Server-Side Template Injection &#183; attack sequence</text>
+  <text x="30" y="60" fill="#8b949e" font-size="12.5">The "Edit Page Template" form compiles admin input as a Handlebars template and runs it on the server.</text>
+  <text x="30" y="77" fill="#8b949e" font-size="12.5">A custom read helper turns that template injection into arbitrary file read. The red steps are the vulnerable ones.</text>
+
+  <!-- Lifeline heads -->
+  <g font-size="14" font-weight="700" text-anchor="middle">
+    <rect x="60" y="98" width="150" height="42" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="135" y="124" fill="#f85149">Attacker</text>
+    <rect x="400" y="98" width="210" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="505" y="118" fill="#e6edf3">WildPortal (server)</text>
+    <text x="505" y="134" fill="#8b949e" font-size="11" font-weight="400">Edit Page Template + Handlebars</text>
+    <rect x="770" y="98" width="150" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="845" y="118" fill="#e6edf3">Server filesystem</text>
+    <text x="845" y="134" fill="#8b949e" font-size="11" font-weight="400">/root/.bashrc</text>
+  </g>
+
+  <!-- Lifelines -->
+  <g stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 4">
+    <line x1="135" y1="140" x2="135" y2="700"/>
+    <line x1="505" y1="140" x2="505" y2="700"/>
+    <line x1="845" y1="140" x2="845" y2="700"/>
+  </g>
+
+  <!-- Messages -->
+  <g font-size="12.5">
+    <!-- 1 legit template -->
+    <line x1="135" y1="184" x2="503" y2="184" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="140" y="177" fill="#e6edf3">1. Normal use: submit template <tspan font-family="monospace" fill="#00caff">Hello {{siteName}}</tspan></text>
+
+    <!-- 2 compile with context -->
+    <line x1="505" y1="222" x2="505" y2="222" stroke="#8b949e"/>
+    <text x="515" y="212" fill="#8b949e" font-family="monospace" font-size="11">handlebars.compile(input)(context)  ->  "Hello WildPortal"</text>
+    <line x1="505" y1="230" x2="140" y2="230" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+    <text x="322" y="245" fill="#8b949e" text-anchor="middle" font-size="11.5">2. rendered output returned (input is being compiled as a template)</text>
+
+    <!-- 3 fingerprint -->
+    <line x1="135" y1="290" x2="503" y2="290" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="140" y="283" fill="#e6edf3">3. Fingerprint: <tspan font-family="monospace" fill="#00caff">{{7*7}}</tspan> -&gt; parse error (logic-less) = Handlebars, not Jinja2/Twig</text>
+
+    <!-- 4 inject read -->
+    <line x1="135" y1="330" x2="503" y2="330" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="140" y="323" fill="#f85149" font-weight="600">4. Inject: <tspan font-family="monospace">{{read "/root/.bashrc"}}</tspan></text>
+
+    <!-- 5 vulnerable compile+run -->
+    <line x1="505" y1="370" x2="843" y2="370" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="515" y="363" fill="#f85149" font-weight="600">5. VULNERABLE: <tspan font-family="monospace">compile(attacker input)</tspan> runs the read helper</text>
+    <text x="515" y="386" fill="#8b949e" font-family="monospace" font-size="11">fs.readFileSync("/root/.bashrc") executes server-side</text>
+
+    <!-- 6 file back -->
+    <line x1="845" y1="424" x2="507" y2="424" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="676" y="417" fill="#8b949e" text-anchor="middle">6. .bashrc contents read from disk</text>
+
+    <!-- 7 exfil -->
+    <line x1="505" y1="464" x2="137" y2="464" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="321" y="457" fill="#8b949e" text-anchor="middle">7. rendered output leaks <tspan font-family="monospace" fill="#00caff">export PASSWORD=&lt;flag&gt;</tspan></text>
+
+    <!-- pivot note -->
+    <rect x="135" y="486" width="720" height="30" rx="6" fill="#161b22" stroke="#30363d"/>
+    <text x="148" y="505" fill="#c9d1d9" font-size="11.5">Other reads: <tspan font-family="monospace" fill="#00caff">/etc/passwd</tspan> &#183; <tspan font-family="monospace" fill="#00caff">app source &amp; config</tspan> &#183; <tspan font-family="monospace" fill="#00caff">.env</tspan> &#183; <tspan font-family="monospace" fill="#00caff">private keys</tspan> &#183; <tspan font-family="monospace" fill="#00caff">/proc/self/environ</tspan></text>
+
+    <!-- outcome box -->
+    <rect x="135" y="532" width="720" height="96" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="150" y="556" fill="#f85149" font-size="13" font-weight="700">Outcome</text>
+    <text x="150" y="576" fill="#c9d1d9" font-size="12">Compiling untrusted input as a template gives the attacker server-side code</text>
+    <text x="150" y="593" fill="#c9d1d9" font-size="12">execution within the engine. A file-reading helper turns that into arbitrary file read.</text>
+    <text x="150" y="613" fill="#8b949e" font-size="11.5">Fix: never compile user input as a template. Pass it as DATA into a fixed, precompiled template.</text>
+
+    <!-- legend -->
+    <g font-size="11">
+      <line x1="150" y1="662" x2="180" y2="662" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+      <text x="187" y="666" fill="#8b949e">legitimate request</text>
+      <line x1="330" y1="662" x2="360" y2="662" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+      <text x="367" y="666" fill="#ff6b6b">vulnerable step</text>
+      <line x1="510" y1="662" x2="540" y2="662" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+      <text x="547" y="666" fill="#8b949e">response / data</text>
+    </g>
+  </g>
+</svg>

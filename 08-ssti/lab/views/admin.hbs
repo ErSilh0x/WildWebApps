@@ -1,0 +1,48 @@
+{{> pagehead title="WildPortal - Admin" badge="SSTI"}}
+
+  <div class="welcome">
+    <h1>Admin area</h1>
+    <p>Signed in as <b>{{user.name}}</b> ({{user.role}}). Manage the portal from
+    the menu below.</p>
+  </div>
+
+  <div class="vk-section">
+    <div class="vk-eyebrow">Admin menu</div>
+    <ul class="menu">
+      <li><a href="/admin">Dashboard</a></li>
+      <li><a href="/admin">Users</a></li>
+      <li><a href="/admin">Content</a></li>
+      <li><a href="/admin">Settings</a></li>
+      <li><button id="edit-template-btn" type="button">Edit Page Template</button></li>
+    </ul>
+  </div>
+
+  <div class="alert alert--warning">
+    <div>
+      <div class="alert__title">Edit Page Template</div>
+      <div class="alert__body">
+        The <b>Edit Page Template</b> button opens a small editor in a new window.
+        Whatever you type there is compiled and rendered on the server with the
+        Handlebars engine, so administrators can tweak how pages look. That server
+        side compilation of your input is the vulnerability this lab teaches.
+      </div>
+    </div>
+  </div>
+
+  <ul class="menu" style="margin-top:14px;">
+    <li><a href="/">&larr; Back to the front page</a></li>
+  </ul>
+
+<script>
+  // Open the vulnerable template editor in a separate popup window, as specified
+  // by the lab design (the third page opens from the admin "Edit Page Template"
+  // button).
+  document.getElementById("edit-template-btn").addEventListener("click", function () {
+    window.open(
+      "/admin/edit-template",
+      "wwa_edit_template",
+      "width=780,height=720,menubar=no,toolbar=no,location=no,status=no"
+    );
+  });
+</script>
+{{> pagefoot}}

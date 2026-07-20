@@ -1,0 +1,14 @@
+{
+  "name": "wildwebapps-ssti-lab",
+  "version": "1.0.0",
+  "description": "WildWebApps lab - Server-Side Template Injection (Handlebars).",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.21.2",
+    "handlebars": "4.7.8"
+  }
+}
