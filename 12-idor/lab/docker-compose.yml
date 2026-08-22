@@ -1,0 +1,16 @@
+# Named after the folder slug so the image and container show up as the
+# vulnerability (12-idor) instead of the default lab-lab.
+name: 12-idor
+services:
+  lab:
+    build: .
+    image: 12-idor:latest
+    container_name: 12-idor
+    # Publish only on the host loopback, so the lab is reachable at
+    # http://127.0.0.1:8000 and nowhere else.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+    restart: unless-stopped

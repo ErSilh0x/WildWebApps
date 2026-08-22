@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WildVault - members' account portal</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  /* ---- product chrome (WildVault) ---- */
+  .wv-nav { display:flex; align-items:center; gap:16px; padding:14px 22px;
+            border-bottom:1px solid #21262d; background:#0d1117; }
+  .wv-logo { display:flex; align-items:center; gap:9px; font-family:var(--font-display,'Space Grotesk',sans-serif);
+             font-weight:700; font-size:17px; color:#e6edf3; }
+  .wv-logo .dot { width:22px; height:22px; border-radius:6px; background:#00caff;
+                  display:inline-flex; align-items:center; justify-content:center;
+                  color:#04222c; font-weight:800; }
+  .wv-nav a.navlink { color:#8b949e; text-decoration:none; font-size:13px; }
+  .wv-nav a.navlink:hover { color:#c9d1d9; }
+  .wv-nav .spacer { flex:1; }
+  .wv-nav .me { display:flex; align-items:center; gap:8px; color:#c9d1d9; font-size:13px; }
+  .wv-avatar { width:30px; height:30px; border-radius:50%; background:#1f6f8b; color:#e6edf3;
+               display:inline-flex; align-items:center; justify-content:center;
+               font-size:12px; font-weight:700; }
+  .wv-wrap { max-width:880px; margin:0 auto; padding:26px 22px 60px; }
+
+  /* ---- dashboard ---- */
+  .wv-hello { font-size:22px; color:#e6edf3; margin:6px 0 2px; }
+  .wv-sub { color:#8b949e; font-size:13px; margin:0 0 20px; }
+  .wv-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:0 0 18px; }
+  @media (max-width:760px){ .wv-cards{ grid-template-columns:1fr 1fr; } }
+  .wv-card { border:1px solid #21262d; border-radius:11px; background:#0f141b; padding:13px 15px; }
+  .wv-card .k { color:#8b949e; font-size:11px; text-transform:uppercase; letter-spacing:.05em; }
+  .wv-card .v { color:#e6edf3; font-size:16px; margin-top:5px; font-weight:600; }
+  .wv-card .v.mono { font-family:var(--font-mono,monospace); font-size:14px; }
+
+  .wv-panel { border:1px solid #21262d; border-radius:12px; background:#0f141b; padding:18px 20px; }
+  .wv-panel + .wv-panel { margin-top:16px; }
+  .wv-panel h2 { font-size:15px; color:#e6edf3; margin:0 0 4px; }
+  .wv-panel p.lead { color:#8b949e; font-size:13px; margin:0 0 14px; }
+  .wv-btn { background:#00caff; color:#04222c; border:none; border-radius:8px;
+            padding:10px 18px; font-weight:700; font-size:13.5px; cursor:pointer;
+            font-family:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:8px; }
+  .wv-btn.ghost { background:transparent; color:#c9d1d9; border:1px solid #30363d; }
+  .wv-btnrow { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  .wv-activity { list-style:none; margin:0; padding:0; }
+  .wv-activity li { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid #1b2029; font-size:13px; }
+  .wv-activity li:last-child { border-bottom:none; }
+  .wv-activity .when { color:#8b949e; width:130px; flex:0 0 auto; }
+  .wv-activity .what { color:#c9d1d9; }
+
+  /* ---- profile ---- */
+  .wv-back { color:#8b949e; font-size:13px; text-decoration:none; }
+  .wv-back:hover { color:#c9d1d9; }
+  .wv-phead { display:flex; align-items:center; gap:16px; margin:14px 0 20px; }
+  .wv-phead .pic { width:64px; height:64px; border-radius:50%; background:#1f6f8b; color:#e6edf3;
+                   display:inline-flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; }
+  .wv-phead h1 { font-size:22px; color:#e6edf3; margin:0 0 4px; }
+  .wv-phead .tags { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .wv-tag { font-size:11px; border-radius:999px; padding:2px 10px; border:1px solid #30363d; color:#8b949e; }
+  .wv-tag.role { color:#f0883e; border-color:#f0883e55; }
+  .wv-tag.role.customer { color:#58a6ff; border-color:#58a6ff55; }
+  .wv-tag.mono { font-family:var(--font-mono,monospace); }
+
+  .wv-fields { display:grid; grid-template-columns:1fr 1fr; gap:12px 26px; }
+  @media (max-width:640px){ .wv-fields{ grid-template-columns:1fr; } }
+  .wv-field .fk { color:#8b949e; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .wv-field .fv { color:#e6edf3; font-size:14px; margin-top:3px; }
+  .wv-field .fv.mono { font-family:var(--font-mono,monospace); word-break:break-all; }
+  .wv-sec .fv.key { color:#c9d1d9; }
+  .wv-note { color:#8b949e; font-size:12px; margin:12px 0 0; }
+  .wv-error { border:1px solid #f8514955; background:#0f141b; color:#f85149; border-radius:10px;
+              padding:12px 15px; font-size:13px; }
+
+  /* ---- training notes (collapsed) ---- */
+  .training { margin-top:30px; border:1px dashed #30363d; border-radius:10px; background:#0d1117; }
+  .training > summary { cursor:pointer; padding:12px 16px; color:#8b949e; font-size:13px;
+                        font-family:var(--font-mono,monospace); list-style:none; }
+  .training > summary::-webkit-details-marker { display:none; }
+  .training > summary b { color:#00caff; }
+  .training .tbody { padding:4px 16px 18px; border-top:1px solid #21262d; }
+  .training h3 { color:#e6edf3; font-size:14px; margin:16px 0 8px; }
+  .training ol { margin:.25rem 0 0 1.1rem; padding:0; color:#c9d1d9; font-size:13px; }
+  .training ol li { margin-bottom:4px; }
+  .training .hint__body pre { white-space:pre-wrap; font-family:var(--font-mono,monospace);
+                              font-size:12px; margin:0; color:#c9d1d9; }
+  .training .flag-form { display:flex; gap:8px; margin-top:6px; }
+  .training a { color:#00caff; }
+</style>
+</head>
+<body>
+
+<nav class="wv-nav">
+  <span class="wv-logo"><span class="dot">W</span> WildVault</span>
+  <a class="navlink" href="{{ url_for('index') }}">Dashboard</a>
+  <a class="navlink" href="#">Statements</a>
+  <a class="navlink" href="#">Security</a>
+  <span class="spacer"></span>
+  {% if me %}
+  <span class="me"><span class="wv-avatar">{{ me.initials }}</span>{{ me.name }}</span>
+  {% endif %}
+</nav>
+
+<div class="wv-wrap">
+
+  {% if view == 'profile' %}
+  <!-- ===================== PROFILE VIEW ===================== -->
+  <a class="wv-back" href="{{ url_for('index') }}">&#8592; Back to dashboard</a>
+
+  {% if error %}
+    <div class="wv-error" style="margin-top:16px;">{{ error }}</div>
+  {% elif profile %}
+    <div class="wv-phead">
+      <span class="pic">{{ profile.initials }}</span>
+      <div>
+        <h1>{{ profile.name }}</h1>
+        <div class="tags">
+          <span class="wv-tag role {{ 'customer' if profile.role == 'customer' else '' }}">{{ profile.role }}</span>
+          <span class="wv-tag">{{ profile.tier }} membership</span>
+          <span class="wv-tag mono">{{ profile.member_no }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="wv-panel">
+      <h2>Personal details</h2>
+      <p class="lead">Contact information on file for this account.</p>
+      <div class="wv-fields">
+        <div class="wv-field"><div class="fk">Email</div><div class="fv mono">{{ profile.email }}</div></div>
+        <div class="wv-field"><div class="fk">Phone</div><div class="fv">{{ profile.phone }}</div></div>
+        <div class="wv-field"><div class="fk">Mailing address</div><div class="fv">{{ profile.address }}</div></div>
+        <div class="wv-field"><div class="fk">Member since</div><div class="fv">{{ profile.member_since }}</div></div>
+      </div>
+    </div>
+
+    <div class="wv-panel">
+      <h2>Membership</h2>
+      <div class="wv-fields">
+        <div class="wv-field"><div class="fk">Tier</div><div class="fv">{{ profile.tier }}</div></div>
+        <div class="wv-field"><div class="fk">Status</div><div class="fv">{{ profile.status }}</div></div>
+        <div class="wv-field"><div class="fk">Member number</div><div class="fv mono">{{ profile.member_no }}</div></div>
+        <div class="wv-field"><div class="fk">Role</div><div class="fv">{{ profile.role }}</div></div>
+      </div>
+    </div>
+
+    <div class="wv-panel wv-sec">
+      <h2>Security</h2>
+      <p class="lead">Private to the account holder. Used to recover access if you are locked out.</p>
+      <div class="wv-fields">
+        <div class="wv-field">
+          <div class="fk">Account recovery key</div>
+          <div class="fv mono key">{{ profile.recovery_key }}</div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  {% else %}
+  <!-- ===================== DASHBOARD VIEW ===================== -->
+  <h1 class="wv-hello">Welcome back, {{ me.name.split(' ')[0] }}</h1>
+  <p class="wv-sub">Here is a summary of your WildVault account.</p>
+
+  <div class="wv-cards">
+    <div class="wv-card"><div class="k">Membership</div><div class="v">{{ me.tier }}</div></div>
+    <div class="wv-card"><div class="k">Status</div><div class="v">{{ me.status }}</div></div>
+    <div class="wv-card"><div class="k">Member since</div><div class="v">{{ me.member_since }}</div></div>
+    <div class="wv-card"><div class="k">Member no.</div><div class="v mono">{{ me.member_no }}</div></div>
+  </div>
+
+  <div class="wv-panel">
+    <h2>Your profile</h2>
+    <p class="lead">View and manage the personal details and security settings on your account.</p>
+    <div class="wv-btnrow">
+      <a class="wv-btn" href="{{ url_for('show_profile') }}?id={{ me.id }}">My profile</a>
+      <a class="wv-btn ghost" href="#" onclick="return false;">Account settings</a>
+    </div>
+  </div>
+
+  <div class="wv-panel">
+    <h2>Recent activity</h2>
+    <ul class="wv-activity">
+      {% for a in activity %}
+      <li><span class="when">{{ a.when }}</span><span class="what">{{ a.what }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <!-- ===================== TRAINING NOTES (collapsed) ===================== -->
+  <details class="training">
+    <summary>&#9656; <b>Training notes</b> - Insecure Direct Object Reference (IDOR) &#183; A01:2025 &#183; click to expand</summary>
+    <div class="tbody">
+      <p style="color:#8b949e;font-size:13px;">
+        Your profile is addressed by your account id in the URL
+        (<code>GET /profile?id=1003</code>), and the server looks the account up by
+        that number with <b>no check that it belongs to you</b>. There is no account
+        picker on the page: you tamper the id directly in the address bar, or with an
+        intercepting proxy like Burp Suite. Account ids are plain sequential numbers,
+        so walking the id to the administrator (account <code>1001</code>) reveals
+        their private <b>account recovery key</b>, the value you submit below.
+      </p>
+
+      <div class="vk-section">
+        <div class="vk-eyebrow">Attack sequence</div>
+        <figure style="margin:0;border:1px solid #21262d;border-radius:10px;overflow:hidden;background:#0d1117;">
+          <img src="{{ url_for('static', filename='diagram.svg') }}" style="display:block;width:100%;height:auto;"
+               alt="IDOR attack sequence: a signed-in customer opens their own profile by account id, then changes the id in the URL to another account's number. The server loads and returns that account with no ownership check, so the attacker reads the administrator's profile and its private recovery key.">
+        </figure>
+      </div>
+
+      <h3>How to solve (edit the id, or use Burp Suite)</h3>
+      <ol>
+        {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+      </ol>
+
+      <h3>Hints</h3>
+      {% for hint in hints %}
+      <details class="hint"><summary>Hint {{ loop.index }}</summary>
+        <div class="hint__body"><pre>{{ hint }}</pre></div>
+      </details>
+      {% endfor %}
+
+      <h3>Code examples</h3>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="tabs" id="lang-tabs"></div>
+        <div class="tabs" id="view-tabs">
+          <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+          <button class="tab" type="button" data-view="fixed">Fixed</button>
+        </div>
+      </div>
+      <div id="code-mount"></div>
+
+      <h3>Verify the value you recovered</h3>
+      <form class="flag-form" id="flag-form" autocomplete="off">
+        <input class="input" id="flag-input" name="flag"
+               placeholder="Paste the 32-char value…" spellcheck="false">
+        <button class="btn btn--primary" type="submit">Check</button>
+      </form>
+      <div class="alert" id="flag-result" hidden></div>
+
+      <h3>References</h3>
+      <ul>
+        {% for label, url in references %}
+        <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} &#8599;</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </details>
+</div>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

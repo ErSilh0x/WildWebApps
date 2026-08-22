@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 760" font-family="'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#00caff"/>
+    </marker>
+    <marker id="arwR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#f85149"/>
+    </marker>
+    <marker id="arwG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="940" height="760" fill="#0d1117"/>
+  <text x="30" y="38" fill="#e6edf3" font-size="21" font-weight="700">Server-Side Request Forgery &#183; attack sequence</text>
+  <text x="30" y="60" fill="#8b949e" font-size="12.5">A "link preview" feature fetches a URL server-side. The attacker submits a URL pointing inward, so the server, which sits</text>
+  <text x="30" y="77" fill="#8b949e" font-size="12.5">inside the trusted network, reaches resources the attacker cannot: local files, internal services, and the cloud metadata API. Red steps are the attack.</text>
+
+  <!-- Lifeline heads -->
+  <g font-size="14" font-weight="700" text-anchor="middle">
+    <rect x="55" y="98" width="150" height="42" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="130" y="124" fill="#f85149">Attacker</text>
+    <rect x="360" y="98" width="230" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="475" y="118" fill="#e6edf3">app.wildmarks.io</text>
+    <text x="475" y="134" fill="#8b949e" font-size="11" font-weight="400">link-preview fetch feature</text>
+    <rect x="715" y="90" width="197" height="58" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="813" y="110" fill="#e6edf3">Internal resources</text>
+    <text x="813" y="126" fill="#8b949e" font-size="10.5" font-weight="400">local files &#183; internal admin</text>
+    <text x="813" y="140" fill="#8b949e" font-size="10.5" font-weight="400">169.254.169.254 metadata</text>
+  </g>
+
+  <!-- Lifelines -->
+  <g stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 4">
+    <line x1="130" y1="148" x2="130" y2="714"/>
+    <line x1="475" y1="148" x2="475" y2="714"/>
+    <line x1="813" y1="148" x2="813" y2="714"/>
+  </g>
+
+  <!-- Messages -->
+  <g font-size="12.5">
+    <!-- 1 legit request -->
+    <line x1="130" y1="190" x2="473" y2="190" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="136" y="183" fill="#e6edf3">1. Normal use: preview <tspan font-family="monospace" fill="#00caff">https://news.example.com/article</tspan></text>
+
+    <!-- 2 server fetches external -->
+    <line x1="475" y1="222" x2="632" y2="222" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="482" y="217" fill="#8b949e" font-family="monospace" font-size="11">server fetches the public page, returns a preview</text>
+
+    <!-- 3 attacker tampers to file:// -->
+    <line x1="130" y1="270" x2="473" y2="270" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="136" y="263" fill="#f85149" font-weight="600">2. Tamper the URL: <tspan font-family="monospace">file:///etc/passwd</tspan></text>
+    <text x="136" y="285" fill="#8b949e" font-family="monospace" font-size="11">no scheme allowlist, so file:// reads the server's disk</text>
+
+    <!-- 4 server reads file -->
+    <line x1="475" y1="318" x2="811" y2="318" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="482" y="311" fill="#f85149" font-weight="600">3. VULNERABLE: server reads a local file</text>
+
+    <!-- 5 file back -->
+    <line x1="813" y1="348" x2="477" y2="348" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="645" y="341" fill="#8b949e" text-anchor="middle">4. file contents returned (user list, service accounts)</text>
+
+    <!-- 6 attacker internal request -->
+    <line x1="130" y1="396" x2="473" y2="396" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="136" y="389" fill="#f85149" font-weight="600">5. Tamper the URL: <tspan font-family="monospace">http://169.254.169.254/latest/meta-data/</tspan></text>
+    <text x="136" y="411" fill="#8b949e" font-family="monospace" font-size="11">attacker cannot reach the metadata API; the server can</text>
+
+    <!-- 7 server reaches internal -->
+    <line x1="475" y1="444" x2="811" y2="444" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="482" y="437" fill="#f85149" font-weight="600">6. VULNERABLE: server requests internal / metadata endpoints</text>
+    <text x="482" y="459" fill="#8b949e" font-family="monospace" font-size="11">also: http://10.0.0.7/admin (internal-only console)</text>
+
+    <!-- 8 creds back to attacker -->
+    <line x1="475" y1="490" x2="132" y2="490" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="303" y="483" fill="#8b949e" text-anchor="middle">7. temporary cloud credentials returned in the reply</text>
+
+    <!-- pivot note -->
+    <rect x="130" y="512" width="700" height="30" rx="6" fill="#161b22" stroke="#30363d"/>
+    <text x="143" y="531" fill="#c9d1d9" font-size="11.5">Also reachable: <tspan font-family="monospace" fill="#00caff">blind</tspan> (timing / OOB DNS) &#183; <tspan font-family="monospace" fill="#00caff">internal port scan</tspan> (127.0.0.1:PORT) &#183; <tspan font-family="monospace" fill="#00caff">gopher://</tspan> (Redis / RCE)</text>
+
+    <!-- outcome box -->
+    <rect x="130" y="558" width="700" height="98" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="145" y="582" fill="#f85149" font-size="13" font-weight="700">Impact</text>
+    <text x="145" y="602" fill="#c9d1d9" font-size="12">With the server's network position the attacker reads local files, reaches internal-only</text>
+    <text x="145" y="619" fill="#c9d1d9" font-size="12">consoles, and steals cloud credentials from the metadata API, leading to account takeover.</text>
+    <text x="145" y="642" fill="#8b949e" font-size="11.5">Fix: allow only http/https, resolve and reject private/loopback/link-local IPs, no redirects, require IMDSv2.</text>
+
+    <!-- legend -->
+    <g font-size="11">
+      <line x1="145" y1="690" x2="175" y2="690" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+      <text x="182" y="694" fill="#8b949e">legitimate request</text>
+      <line x1="315" y1="690" x2="345" y2="690" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+      <text x="352" y="694" fill="#ff6b6b">attack step</text>
+      <line x1="470" y1="690" x2="500" y2="690" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+      <text x="507" y="694" fill="#8b949e">response / data</text>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WildTools - network diagnostics</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  /* ---- product chrome (WildTools console) ---- */
+  .wt-nav { display:flex; align-items:center; gap:16px; padding:14px 22px;
+            border-bottom:1px solid #21262d; background:#0d1117; }
+  .wt-logo { display:flex; align-items:center; gap:9px; font-family:var(--font-display,'Space Grotesk',sans-serif);
+             font-weight:700; font-size:17px; color:#e6edf3; }
+  .wt-logo .dot { width:24px; height:24px; border-radius:6px; background:#00caff;
+                  display:inline-flex; align-items:center; justify-content:center;
+                  color:#04222c; font-weight:800; font-size:14px; }
+  .wt-nav a { color:#8b949e; text-decoration:none; font-size:13px; }
+  .wt-nav a.active { color:#e6edf3; }
+  .wt-nav .spacer { flex:1; }
+  .wt-nav .env { color:#8b949e; font-size:12px; font-family:var(--font-mono,monospace);
+                 border:1px solid #21262d; border-radius:6px; padding:3px 8px; }
+  .wt-nav .avatar { width:28px; height:28px; border-radius:50%; background:#1f6f8b; }
+
+  .wt-wrap { max-width:920px; margin:0 auto; padding:26px 22px 60px; }
+  .wt-h { margin:6px 0 4px; }
+  .wt-h h1 { font-size:22px; margin:0; color:#e6edf3; }
+  .wt-h p { color:#8b949e; font-size:13px; margin:6px 0 20px; }
+
+  /* tool tabs */
+  .wt-tabs { display:flex; gap:4px; border-bottom:1px solid #21262d; margin-bottom:18px; }
+  .wt-tabs .t { padding:9px 14px; font-size:13px; color:#8b949e; cursor:default;
+                border-bottom:2px solid transparent; }
+  .wt-tabs .t.active { color:#e6edf3; border-bottom-color:#00caff; }
+
+  /* diagnostics card */
+  .wt-card { border:1px solid #21262d; border-radius:12px; background:#0f141b; padding:18px; }
+  .wt-card .lead { color:#c9d1d9; font-size:13px; margin:0 0 14px; }
+  .wt-form .row { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .wt-field { display:flex; flex-direction:column; gap:6px; flex:1 1 340px; }
+  .wt-field label { color:#8b949e; font-size:12px; }
+  .wt-field input {
+    box-sizing:border-box; width:100%;
+    font-family:var(--font-mono,monospace); font-size:14px; color:#e6edf3;
+    background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:11px 13px;
+  }
+  .wt-field input:focus { outline:none; border-color:#00caff; }
+  .wt-field.small { flex:0 0 96px; }
+  .wt-field select {
+    font-family:var(--font-mono,monospace); font-size:13px; color:#c9d1d9;
+    background:#0d1117; border:1px solid #30363d; border-radius:8px; padding:11px 10px;
+  }
+  .wt-run { background:#00caff; color:#04222c; border:none; border-radius:8px;
+            padding:12px 22px; font-weight:700; font-size:14px; cursor:pointer;
+            font-family:inherit; }
+  .wt-run:hover { filter:brightness(1.05); }
+
+  /* terminal output */
+  .wt-term { margin-top:16px; border:1px solid #21262d; border-radius:10px; background:#0d1117; overflow:hidden; }
+  .wt-term .bar { display:flex; gap:10px; align-items:center; padding:9px 12px;
+                  border-bottom:1px solid #21262d; font-size:12px; color:#8b949e;
+                  font-family:var(--font-mono,monospace); }
+  .wt-term .bar .dotr { width:10px; height:10px; border-radius:50%; background:#f85149; }
+  .wt-term .bar .doty { width:10px; height:10px; border-radius:50%; background:#e3b341; }
+  .wt-term .bar .dotg { width:10px; height:10px; border-radius:50%; background:#3fb950; }
+  .wt-term .bar .who { margin-left:6px; }
+  .wt-term pre { margin:0; padding:14px; font-family:var(--font-mono,monospace);
+                 font-size:12.5px; line-height:1.55; color:#c9d1d9; white-space:pre-wrap;
+                 word-break:break-word; max-height:360px; overflow:auto; }
+  .wt-term pre .cmd { color:#8b949e; }
+  .wt-term pre.err { color:#f85149; }
+  .wt-term .empty { color:#6e7681; }
+
+  /* recent checks */
+  .wt-recent { margin-top:22px; }
+  .wt-recent h3 { color:#8b949e; font-size:12px; text-transform:uppercase; letter-spacing:.05em; margin:0 0 10px; }
+  .wt-recent ul { list-style:none; margin:0; padding:0; display:grid; gap:8px; }
+  .wt-recent li { display:flex; align-items:center; gap:12px; border:1px solid #21262d;
+                  border-radius:9px; background:#0f141b; padding:10px 13px; font-size:13px; }
+  .wt-recent .host { color:#e6edf3; font-family:var(--font-mono,monospace); }
+  .wt-recent .spring { flex:1; }
+  .wt-recent .ok { color:#3fb950; font-size:12px; }
+  .wt-recent .ms { color:#8b949e; font-size:12px; font-family:var(--font-mono,monospace); }
+
+  /* ---- training notes (collapsed) ---- */
+  .training { margin-top:32px; border:1px dashed #30363d; border-radius:10px; background:#0d1117; }
+  .training > summary { cursor:pointer; padding:12px 16px; color:#8b949e; font-size:13px;
+                        font-family:var(--font-mono,monospace); list-style:none; }
+  .training > summary::-webkit-details-marker { display:none; }
+  .training > summary b { color:#00caff; }
+  .training .tbody { padding:4px 16px 18px; border-top:1px solid #21262d; }
+  .training h3 { color:#e6edf3; font-size:14px; margin:16px 0 8px; }
+  .training p { color:#8b949e; font-size:13px; }
+  .training ol { margin:.25rem 0 0 1.1rem; padding:0; color:#c9d1d9; font-size:13px; }
+  .training ol li { margin-bottom:4px; }
+  .training .hint__body pre { white-space:pre-wrap; font-family:var(--font-mono,monospace);
+                              font-size:12px; margin:0; color:#c9d1d9; }
+  .training .flag-form { display:flex; gap:8px; margin-top:6px; }
+  .training a { color:#00caff; }
+</style>
+</head>
+<body>
+
+<nav class="wt-nav">
+  <span class="wt-logo"><span class="dot">&gt;_</span> WildTools</span>
+  <a href="#" class="active">Diagnostics</a>
+  <a href="#">Servers</a>
+  <a href="#">Monitors</a>
+  <a href="#">Logs</a>
+  <span class="spacer"></span>
+  <span class="env">prod-eu-1</span>
+  <span class="avatar"></span>
+</nav>
+
+<div class="wt-wrap">
+  <div class="wt-h">
+    <h1>Network diagnostics</h1>
+    <p>Run a quick reachability check from the application server.</p>
+  </div>
+
+  <div class="wt-tabs">
+    <div class="t active">Ping</div>
+    <div class="t">Traceroute</div>
+    <div class="t">DNS lookup</div>
+    <div class="t">Port check</div>
+  </div>
+
+  <div class="wt-card">
+    <p class="lead">Send an ICMP echo from <b>prod-eu-1</b> to a target host and see the round-trip result.</p>
+    <form class="wt-form" method="POST" action="{{ url_for('index') }}">
+      <div class="row">
+        <div class="wt-field">
+          <label for="host">Target host</label>
+          <input id="host" name="host" value="{{ submitted_host }}"
+                 placeholder="example.com or 8.8.8.8" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="wt-field small">
+          <label for="count">Count</label>
+          <select id="count" name="count">
+            <option>1</option>
+          </select>
+        </div>
+        <button class="wt-run" type="submit">Ping</button>
+      </div>
+    </form>
+
+    {% if result %}
+    <div class="wt-term">
+      <div class="bar">
+        <span class="dotr"></span><span class="doty"></span><span class="dotg"></span>
+        <span class="who">prod-eu-1 : ~ $</span>
+      </div>
+      {% if result.output is defined %}
+        <pre><span class="cmd">$ {{ result.command }}</span>
+{{ result.output }}</pre>
+      {% elif result.error is defined %}
+        <pre class="err"><span class="cmd">$ {{ result.command }}</span>
+{{ result.error }}</pre>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="wt-term">
+      <div class="bar">
+        <span class="dotr"></span><span class="doty"></span><span class="dotg"></span>
+        <span class="who">prod-eu-1 : ~ $</span>
+      </div>
+      <pre class="empty">Enter a host and press Ping to see the output.</pre>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="wt-recent">
+    <h3>Recent checks</h3>
+    <ul>
+      <li><span class="host">10.0.0.12</span><span class="spring"></span><span class="ms">0.4 ms</span><span class="ok">reachable</span></li>
+      <li><span class="host">api.internal</span><span class="spring"></span><span class="ms">1.1 ms</span><span class="ok">reachable</span></li>
+      <li><span class="host">8.8.8.8</span><span class="spring"></span><span class="ms">12.7 ms</span><span class="ok">reachable</span></li>
+    </ul>
+  </div>
+
+  <!-- ===================== TRAINING NOTES (collapsed) ===================== -->
+  <details class="training">
+    <summary>&#9656; <b>Training notes</b> - OS Command Injection &#183; A05:2025 &#183; click to expand</summary>
+    <div class="tbody">
+      <p>
+        The <b>Ping</b> tool builds a shell command out of the target host you
+        submit (<code>ping -c 1 &lt;host&gt;</code>) and runs it through
+        <code>/bin/sh</code>. Because the value is dropped straight into a command
+        line, a <b>shell metacharacter</b> lets you chain a second command: a
+        value like <code>127.0.0.1; cat /root/secret.txt</code> runs the ping and
+        then reads a file it never should. The recoverable secret is a 32-char
+        value stored in <code>/root/secret.txt</code>.
+      </p>
+
+      <div class="vk-section">
+        <div class="vk-eyebrow">Attack sequence</div>
+        <figure style="margin:0;border:1px solid #21262d;border-radius:10px;overflow:hidden;background:#0d1117;">
+          <img src="{{ url_for('static', filename='diagram.svg') }}" style="display:block;width:100%;height:auto;"
+               alt="OS command injection attack sequence: the attacker submits a host value containing a shell separator and a second command; the server concatenates it into a shell command line and runs it, so the injected command executes and its output returns in the response.">
+        </figure>
+      </div>
+
+      <h3>How to solve</h3>
+      <ol>
+        {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+      </ol>
+
+      <h3>Hints</h3>
+      {% for hint in hints %}
+      <details class="hint"><summary>Hint {{ loop.index }}</summary>
+        <div class="hint__body"><pre>{{ hint }}</pre></div>
+      </details>
+      {% endfor %}
+
+      <h3>Code examples</h3>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="tabs" id="lang-tabs"></div>
+        <div class="tabs" id="view-tabs">
+          <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+          <button class="tab" type="button" data-view="fixed">Fixed</button>
+        </div>
+      </div>
+      <div id="code-mount"></div>
+
+      <h3>Verify the value you recovered</h3>
+      <form class="flag-form" id="flag-form" autocomplete="off">
+        <input class="input" id="flag-input" name="flag"
+               placeholder="Paste the 32-char value…" spellcheck="false">
+        <button class="btn btn--primary" type="submit">Check</button>
+      </form>
+      <div class="alert" id="flag-result" hidden></div>
+
+      <h3>References</h3>
+      <ul>
+        {% for label, url in references %}
+        <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} &#8599;</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </details>
+</div>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

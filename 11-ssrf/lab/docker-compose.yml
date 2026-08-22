@@ -1,0 +1,22 @@
+# Named after the folder slug so the image and container show up as the
+# vulnerability (11-ssrf) instead of the default lab-lab.
+name: 11-ssrf
+services:
+  lab:
+    build: .
+    image: 11-ssrf:latest
+    container_name: 11-ssrf
+    # Publish ONLY the public app on the host loopback. The internal service
+    # (8080) and the metadata listener (169.254.169.254:80) are deliberately
+    # NOT published, so they are reachable only through the SSRF.
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - INTERNAL_HOST=127.0.0.1
+      - INTERNAL_PORT=8080
+      - METADATA_HOST=169.254.169.254
+      - METADATA_PORT=80
+      - PASSWD_FILE=/etc/passwd
+    restart: unless-stopped

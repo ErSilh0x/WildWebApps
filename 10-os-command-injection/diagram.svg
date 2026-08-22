@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 760" font-family="'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arw" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#00caff"/>
+    </marker>
+    <marker id="arwR" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#f85149"/>
+    </marker>
+    <marker id="arwG" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L8,3 L0,6 Z" fill="#8b949e"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="940" height="760" fill="#0d1117"/>
+  <text x="30" y="38" fill="#e6edf3" font-size="21" font-weight="700">OS Command Injection &#183; attack sequence</text>
+  <text x="30" y="60" fill="#8b949e" font-size="12.5">A network-diagnostics feature runs a ping command built from the host the user submits. The attacker adds a shell</text>
+  <text x="30" y="77" fill="#8b949e" font-size="12.5">separator, so the server runs a second command with the application's privileges and returns its output. Red steps are the attack.</text>
+
+  <!-- Lifeline heads -->
+  <g font-size="14" font-weight="700" text-anchor="middle">
+    <rect x="55" y="98" width="150" height="42" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="130" y="124" fill="#f85149">Attacker</text>
+    <rect x="360" y="98" width="230" height="42" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="475" y="118" fill="#e6edf3">diag.wildtools.io</text>
+    <text x="475" y="134" fill="#8b949e" font-size="11" font-weight="400">ping feature, runs sh -c</text>
+    <rect x="715" y="90" width="197" height="58" rx="8" fill="#161b22" stroke="#00caff" stroke-width="1.5"/>
+    <text x="813" y="110" fill="#e6edf3">Application server</text>
+    <text x="813" y="126" fill="#8b949e" font-size="10.5" font-weight="400">OS shell &#183; app credentials</text>
+    <text x="813" y="140" fill="#8b949e" font-size="10.5" font-weight="400">config, keys, /etc/passwd</text>
+  </g>
+
+  <!-- Lifelines -->
+  <g stroke="#30363d" stroke-width="1.5" stroke-dasharray="4 4">
+    <line x1="130" y1="148" x2="130" y2="714"/>
+    <line x1="475" y1="148" x2="475" y2="714"/>
+    <line x1="813" y1="148" x2="813" y2="714"/>
+  </g>
+
+  <!-- Messages -->
+  <g font-size="12.5">
+    <!-- 1 legit request -->
+    <line x1="130" y1="190" x2="473" y2="190" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="136" y="183" fill="#e6edf3">1. Normal use: ping <tspan font-family="monospace" fill="#00caff">host=example.com</tspan></text>
+
+    <!-- 2 server runs ping -->
+    <line x1="475" y1="222" x2="811" y2="222" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+    <text x="482" y="217" fill="#8b949e" font-family="monospace" font-size="11">sh -c "ping -c 1 example.com"</text>
+
+    <!-- 3 output back -->
+    <line x1="475" y1="252" x2="132" y2="252" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+    <text x="303" y="245" fill="#8b949e" text-anchor="middle">3. round-trip result shown in the response</text>
+
+    <!-- 4 attacker probes with ; id -->
+    <line x1="130" y1="300" x2="473" y2="300" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="136" y="293" fill="#f85149" font-weight="600">2. Tamper the host: <tspan font-family="monospace">127.0.0.1; id</tspan></text>
+    <text x="136" y="315" fill="#8b949e" font-family="monospace" font-size="11">the ; is a shell separator, not part of a hostname</text>
+
+    <!-- 5 vulnerable shell run -->
+    <line x1="475" y1="348" x2="811" y2="348" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="482" y="341" fill="#f85149" font-weight="600">3. VULNERABLE: shell runs the injected command</text>
+    <text x="482" y="363" fill="#8b949e" font-family="monospace" font-size="11">sh -c "ping -c 1 127.0.0.1; id" -&gt; uid=0(root)</text>
+
+    <!-- 6 escalate: read secrets -->
+    <line x1="130" y1="408" x2="473" y2="408" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="136" y="401" fill="#f85149" font-weight="600">4. Escalate: <tspan font-family="monospace">127.0.0.1; cat /etc/passwd</tspan> and read app config</text>
+    <text x="136" y="423" fill="#8b949e" font-family="monospace" font-size="11">server reads credentials, keys, and configuration files</text>
+
+    <!-- 7 secrets back -->
+    <line x1="475" y1="456" x2="132" y2="456" stroke="#f85149" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwR)"/>
+    <text x="303" y="449" fill="#8b949e" text-anchor="middle">5. command output returned to the attacker</text>
+
+    <!-- 8 reverse shell -->
+    <line x1="475" y1="496" x2="132" y2="496" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+    <text x="303" y="489" fill="#f85149" text-anchor="middle" font-weight="600">6. reverse shell connects back -&gt; interactive control</text>
+
+    <!-- pivot note -->
+    <rect x="130" y="518" width="700" height="30" rx="6" fill="#161b22" stroke="#30363d"/>
+    <text x="143" y="537" fill="#c9d1d9" font-size="11.5">Also reachable: <tspan font-family="monospace" fill="#00caff">blind</tspan> (timing / OOB DNS) &#183; <tspan font-family="monospace" fill="#00caff">reverse shell</tspan> (PHP / netcat) &#183; <tspan font-family="monospace" fill="#00caff">argument injection</tspan> (extra arguments)</text>
+
+    <!-- outcome box -->
+    <rect x="130" y="564" width="700" height="98" rx="8" fill="#161b22" stroke="#f85149" stroke-width="1.5"/>
+    <text x="145" y="588" fill="#f85149" font-size="13" font-weight="700">Impact</text>
+    <text x="145" y="608" fill="#c9d1d9" font-size="12">The attacker runs any command the application account can run: read credentials and configuration,</text>
+    <text x="145" y="625" fill="#c9d1d9" font-size="12">pull a second-stage tool, and open a reverse shell for full, interactive control of the host and lateral movement.</text>
+    <text x="145" y="648" fill="#8b949e" font-size="11.5">Fix: never build shell command lines from input; call the program with an argument list (no shell), and run with least privilege.</text>
+
+    <!-- legend -->
+    <g font-size="11">
+      <line x1="145" y1="696" x2="175" y2="696" stroke="#00caff" stroke-width="1.6" marker-end="url(#arw)"/>
+      <text x="182" y="700" fill="#8b949e">legitimate request</text>
+      <line x1="315" y1="696" x2="345" y2="696" stroke="#f85149" stroke-width="2" marker-end="url(#arwR)"/>
+      <text x="352" y="700" fill="#ff6b6b">attack step</text>
+      <line x1="470" y1="696" x2="500" y2="696" stroke="#8b949e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#arwG)"/>
+      <text x="507" y="700" fill="#8b949e">response / data</text>
+    </g>
+  </g>
+</svg>

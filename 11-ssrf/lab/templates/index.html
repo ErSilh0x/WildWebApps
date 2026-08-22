@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WildMarks - saved links</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
+<style>
+  /* ---- product chrome (WildMarks) ---- */
+  .wm-nav { display:flex; align-items:center; gap:14px; padding:14px 22px;
+            border-bottom:1px solid #21262d; background:#0d1117; }
+  .wm-logo { display:flex; align-items:center; gap:9px; font-family:var(--font-display,'Space Grotesk',sans-serif);
+             font-weight:700; font-size:17px; color:#e6edf3; }
+  .wm-logo .dot { width:22px; height:22px; border-radius:6px; background:#00caff;
+                  display:inline-flex; align-items:center; justify-content:center;
+                  color:#04222c; font-weight:800; }
+  .wm-nav .spacer { flex:1; }
+  .wm-nav a { color:#8b949e; text-decoration:none; font-size:13px; }
+  .wm-nav .avatar { width:28px; height:28px; border-radius:50%; background:#1f6f8b; }
+  .wm-wrap { max-width:900px; margin:0 auto; padding:26px 22px 60px; }
+  .wm-h { display:flex; align-items:baseline; justify-content:space-between; margin:6px 0 18px; }
+  .wm-h h1 { font-size:22px; margin:0; color:#e6edf3; }
+  .wm-h .count { color:#8b949e; font-size:13px; }
+
+  .wm-feature { display:flex; gap:18px; border:1px solid #21262d; border-radius:12px;
+                background:#0f141b; padding:16px; }
+  .wm-feature .thumb { width:280px; height:158px; border-radius:8px; object-fit:cover;
+                       background:#0d1117; border:1px solid #21262d; flex:0 0 auto; }
+  .wm-feature .meta { display:flex; flex-direction:column; min-width:0; }
+  .wm-feature .meta .src { color:#00caff; font-size:12px; }
+  .wm-feature .meta h2 { font-size:18px; margin:6px 0 4px; color:#e6edf3; }
+  .wm-feature .meta .saved { color:#8b949e; font-size:12px; }
+  .wm-feature .meta .spring { flex:1; }
+  .wm-actions { display:flex; gap:10px; align-items:center; }
+  .wm-btn { background:#00caff; color:#04222c; border:none; border-radius:8px;
+            padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer;
+            font-family:inherit; }
+  .wm-btn.ghost { background:transparent; color:#c9d1d9; border:1px solid #30363d; }
+
+  .wm-preview { margin-top:16px; border:1px solid #21262d; border-radius:10px; background:#0d1117; overflow:hidden; }
+  .wm-preview .bar { display:flex; gap:10px; align-items:center; padding:9px 12px;
+                     border-bottom:1px solid #21262d; font-size:12px; color:#8b949e;
+                     font-family:var(--font-mono,monospace); word-break:break-all; }
+  .wm-preview pre { margin:0; padding:12px; font-family:var(--font-mono,monospace);
+                    font-size:12px; color:#c9d1d9; white-space:pre-wrap; word-break:break-word;
+                    max-height:340px; overflow:auto; }
+  .wm-preview .err { color:#f85149; }
+
+  .wm-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; }
+  .wm-list li { display:flex; align-items:center; gap:12px; border:1px solid #21262d;
+                border-radius:10px; background:#0f141b; padding:12px 14px; }
+  .wm-list .fav { width:34px; height:34px; border-radius:7px; background:#132430;
+                  border:1px solid #21262d; flex:0 0 auto; }
+  .wm-list .t { color:#e6edf3; font-size:14px; }
+  .wm-list .s { color:#8b949e; font-size:12px; }
+  .wm-list .spring { flex:1; }
+
+  /* ---- training notes (collapsed) ---- */
+  .training { margin-top:30px; border:1px dashed #30363d; border-radius:10px; background:#0d1117; }
+  .training > summary { cursor:pointer; padding:12px 16px; color:#8b949e; font-size:13px;
+                        font-family:var(--font-mono,monospace); list-style:none; }
+  .training > summary::-webkit-details-marker { display:none; }
+  .training > summary b { color:#00caff; }
+  .training .tbody { padding:4px 16px 18px; border-top:1px solid #21262d; }
+  .training h3 { color:#e6edf3; font-size:14px; margin:16px 0 8px; }
+  .training ol { margin:.25rem 0 0 1.1rem; padding:0; color:#c9d1d9; font-size:13px; }
+  .training ol li { margin-bottom:4px; }
+  .training .hint__body pre { white-space:pre-wrap; font-family:var(--font-mono,monospace);
+                              font-size:12px; margin:0; color:#c9d1d9; }
+  .training .flag-form { display:flex; gap:8px; margin-top:6px; }
+  .training a { color:#00caff; }
+</style>
+</head>
+<body>
+
+<nav class="wm-nav">
+  <span class="wm-logo"><span class="dot">W</span> WildMarks</span>
+  <a href="#">Collections</a>
+  <a href="#">Tags</a>
+  <a href="#">Shared</a>
+  <span class="spacer"></span>
+  <a href="#">New bookmark</a>
+  <span class="avatar"></span>
+</nav>
+
+<div class="wm-wrap">
+  <div class="wm-h">
+    <h1>Saved links</h1>
+    <span class="count">4 bookmarks</span>
+  </div>
+
+  <!-- Featured bookmark: thumbnail is loaded through the image proxy, and the
+       Refresh button re-fetches the saved link server-side. Neither shows a URL
+       input; the URL rides in the request only. -->
+  <div class="wm-feature">
+    <img class="thumb" src="{{ default_thumb }}" alt="preview thumbnail">
+    <div class="meta">
+      <span class="src">{{ featured.source }}</span>
+      <h2>{{ featured.title }}</h2>
+      <span class="saved">{{ featured.saved }}</span>
+      <div class="spring"></div>
+      <form class="wm-actions" method="POST" action="{{ url_for('unfurl') }}">
+        <input type="hidden" name="id" value="{{ featured.id }}">
+        <input type="hidden" name="url" value="{{ featured.url }}">
+        <button class="wm-btn" type="submit">Refresh preview</button>
+        <a class="wm-btn ghost" href="#" onclick="return false;">Open</a>
+      </form>
+    </div>
+  </div>
+
+  {% if preview %}
+  <div class="wm-preview">
+    {% if preview.body is defined %}
+      <div class="bar">preview source &#183; {{ previewed_url }} &#183; {{ preview.status }} &#183; {{ preview.content_type }}</div>
+      <pre>{{ preview.body }}</pre>
+    {% elif preview.error is defined %}
+      <div class="bar err">preview failed &#183; {{ previewed_url }}</div>
+      <pre class="err">{{ preview.error }}</pre>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <ul class="wm-list">
+    {% for bm in others %}
+    <li>
+      <span class="fav"></span>
+      <div>
+        <div class="t">{{ bm.title }}</div>
+        <div class="s">{{ bm.source }} &#183; {{ bm.saved }}</div>
+      </div>
+      <span class="spring"></span>
+      <span class="s">&#9734;</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <!-- ===================== TRAINING NOTES (collapsed) ===================== -->
+  <details class="training">
+    <summary>&#9656; <b>Training notes</b> - Server-Side Request Forgery (SSRF) &#183; A01:2025 &#183; click to expand</summary>
+    <div class="tbody">
+      <p style="color:#8b949e;font-size:13px;">
+        The thumbnail and the <b>Refresh preview</b> button both fetch a URL
+        <b>server-side</b> with no restriction on scheme or destination. There is
+        no URL input on the page: the parameter lives only in the request
+        (<code>GET /img?u=</code> and <code>POST /unfurl</code> with a hidden
+        <code>url</code> field), so you tamper it with Burp Suite.
+      </p>
+
+      <div class="vk-section">
+        <div class="vk-eyebrow">Attack sequence</div>
+        <figure style="margin:0;border:1px solid #21262d;border-radius:10px;overflow:hidden;background:#0d1117;">
+          <img src="{{ url_for('static', filename='diagram.svg') }}" style="display:block;width:100%;height:auto;"
+               alt="SSRF attack sequence: the attacker tampers the URL a link-preview feature fetches, so the server reaches local files, internal services, and the cloud metadata API.">
+        </figure>
+      </div>
+
+      <h3>How to solve (with Burp Suite)</h3>
+      <ol>
+        {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+      </ol>
+
+      <h3>Hints</h3>
+      {% for hint in hints %}
+      <details class="hint"><summary>Hint {{ loop.index }}</summary>
+        <div class="hint__body"><pre>{{ hint }}</pre></div>
+      </details>
+      {% endfor %}
+
+      <h3>Code examples</h3>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="tabs" id="lang-tabs"></div>
+        <div class="tabs" id="view-tabs">
+          <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+          <button class="tab" type="button" data-view="fixed">Fixed</button>
+        </div>
+      </div>
+      <div id="code-mount"></div>
+
+      <h3>Verify the secret you recovered</h3>
+      <form class="flag-form" id="flag-form" autocomplete="off">
+        <input class="input" id="flag-input" name="flag"
+               placeholder="Paste the 32-char value…" spellcheck="false">
+        <button class="btn btn--primary" type="submit">Check</button>
+      </form>
+      <div class="alert" id="flag-result" hidden></div>
+
+      <h3>References</h3>
+      <ul>
+        {% for label, url in references %}
+        <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} &#8599;</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </details>
+</div>
+
+<script id="lab-data" type="application/json">{{ languages | tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

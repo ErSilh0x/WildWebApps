@@ -33,6 +33,9 @@ break it in a lab, and learn to fix it.
 | 07 | [Directory Traversal (Path Traversal)](07-directory-traversal/) | `A01:2025 – Broken Access Control` | [Run](07-directory-traversal/lab/) | Ready |
 | 08 | [Server-Side Template Injection (SSTI)](08-ssti/) | `A05:2025 – Injection` | [Run](08-ssti/lab/) | Ready |
 | 09 | [XML External Entity (XXE) Injection](09-xxe/) | `A05:2025 – Injection` | [Run](09-xxe/lab/) | Ready |
+| 10 | [OS Command Injection](10-os-command-injection/) | `A05:2025 – Injection` | [Run](10-os-command-injection/lab/) | Ready |
+| 11 | [Server-Side Request Forgery (SSRF)](11-ssrf/) | `A01:2025 – Broken Access Control` | [Run](11-ssrf/lab/) | Ready |
+| 12 | [Insecure Direct Object Reference (IDOR)](12-idor/) | `A01:2025 – Broken Access Control` | [Run](12-idor/lab/) | Ready |
 
 <!-- Index rows are added per vulnerability; later auto-generated (C11). -->
 
