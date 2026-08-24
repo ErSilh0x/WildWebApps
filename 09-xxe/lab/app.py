@@ -14,9 +14,9 @@ solved the ERROR-BASED way: when the looked-up product id is not a real id
 that quotes the offending value. That error message is where the file contents
 (and the flag) leak out.
 
-The per-process MD5 flag is planted into /etc/passwd (in the GECOS comment field
-of an extra "wwa-flag" account line), so reading file:///etc/passwd through the
-XXE reveals it. The flag rotates on every restart.
+The per-process MD5 secret is planted into /etc/passwd (in the GECOS comment
+field of an extra "svc-stock" service-account line, after "key="), so reading
+file:///etc/passwd through the XXE reveals it. The value rotates on every restart.
 """
 import os
 
@@ -36,17 +36,21 @@ FLAG = vulnlab.generate_flag()
 PASSWD_FILE = os.environ.get("PASSWD_FILE", "/etc/passwd")
 
 
-def plant_flag_in_passwd():
-    """Append an extra account line to /etc/passwd that carries the flag.
+PASSWD_MARKER = "svc-stock:"
 
-    The flag lives in the GECOS (comment) field of a "wwa-flag" user, so that a
-    successful read of /etc/passwd shows a normal-looking passwd file with the
-    flag sitting in one of its lines. Any previous wwa-flag line is stripped
-    first, so restarting the lab rotates the flag cleanly.
+
+def plant_flag_in_passwd():
+    """Append a plausible service-account line to /etc/passwd carrying the secret.
+
+    The secret lives in the GECOS (comment) field of a "svc-stock" service
+    account, after "key=", so a successful read of /etc/passwd shows a
+    normal-looking passwd file with the value sitting in one of its lines. Any
+    previous svc-stock line is stripped first, so restarting rotates the value
+    cleanly.
     """
-    flag_line = (
-        "wwa-flag:x:1337:1337:WildWebApps flag " + FLAG
-        + ":/home/wwa-flag:/usr/sbin/nologin\n"
+    account_line = (
+        "svc-stock:x:1310:1310:WildParts stock sync key=" + FLAG
+        + ":/var/lib/wildparts:/usr/sbin/nologin\n"
     )
     try:
         with open(PASSWD_FILE, "r", encoding="utf-8", errors="replace") as fh:
@@ -54,8 +58,8 @@ def plant_flag_in_passwd():
     except OSError:
         existing = []
 
-    kept = [line for line in existing if not line.startswith("wwa-flag:")]
-    kept.append(flag_line)
+    kept = [line for line in existing if not line.startswith(PASSWD_MARKER)]
+    kept.append(account_line)
 
     try:
         with open(PASSWD_FILE, "w", encoding="utf-8") as fh:
@@ -69,16 +73,20 @@ def plant_flag_in_passwd():
 plant_flag_in_passwd()
 
 
-# A tiny in-memory product catalogue. A real lookup would hit a database; here a
-# dict is enough to show the difference between a valid id (stock returned) and
-# an unknown id (an error that quotes the value back, the error-based leak).
-CATALOGUE = {
-    1: {"name": "Brake pad set", "stock": 42},
-    2: {"name": "Oil filter", "stock": 17},
-    3: {"name": "Spark plug (4-pack)", "stock": 8},
-    4: {"name": "Wiper blade", "stock": 0},
-    5: {"name": "Cabin air filter", "stock": 23},
-}
+# A small in-memory product catalogue. A real lookup would hit a database; here a
+# list is enough to show the difference between a valid id (stock returned) and an
+# unknown id (an error that quotes the value back, the error-based leak). The list
+# is also rendered on the page so the store looks real.
+CATALOGUE_ITEMS = [
+    {"id": 1, "sku": "BRK-11", "name": "Brake pad set (front)", "category": "Braking", "stock": 42},
+    {"id": 2, "sku": "FLT-08", "name": "Oil filter", "category": "Filters", "stock": 17},
+    {"id": 3, "sku": "IGN-24", "name": "Spark plug (4-pack)", "category": "Ignition", "stock": 8},
+    {"id": 4, "sku": "WPR-03", "name": "Wiper blade 22in", "category": "Exterior", "stock": 0},
+    {"id": 5, "sku": "FLT-19", "name": "Cabin air filter", "category": "Filters", "stock": 23},
+]
+
+# Fast lookup by product id, used by the stock check.
+CATALOGUE = {item["id"]: item for item in CATALOGUE_ITEMS}
 
 # The XML document the browser sends for a stock check. Shown pre-filled in the
 # big input box so the student sees the exact shape they are tampering with.
@@ -249,21 +257,21 @@ LANGUAGES = {
 }
 
 INSTRUCTIONS = [
-    "The WildParts store checks stock by parsing an XML document you control. "
-    "Send the sample request first and confirm it works: product id 3 returns a "
-    "stock count.",
+    "The stock API parses the XML you submit. Send the sample request first and "
+    "confirm it works: product id 3 returns a stock count.",
     "Test for XXE by adding a DOCTYPE with an entity and referencing it in "
-    "<productId>. Start harmless: define <!ENTITY test \"1\"> and use &test; to "
+    "<productId>. Start harmless: define <!ENTITY test \"3\"> and use &test; to "
     "confirm the parser expands your entities.",
     "Escalate to an EXTERNAL entity that reads a file: declare "
     "<!ENTITY xxe SYSTEM \"file:///etc/passwd\"> and put &xxe; inside "
     "<productId>. The parser reads the file and drops its contents into the "
     "element before the lookup runs.",
     "The lookup then fails (the file's text is not a product id), and the app "
-    "reports the failure by quoting your value back. That error message is where "
-    "/etc/passwd (and the flag) leaks out: this is error-based exfiltration.",
-    "Find the wwa-flag line in the leaked /etc/passwd. The 32-char MD5 flag sits "
-    "in its comment field. Submit it below. It rotates on every restart.",
+    "reports the failure by quoting your value back. That error is where "
+    "/etc/passwd leaks out: this is error-based exfiltration.",
+    "In the leaked /etc/passwd, find the svc-stock service-account line. The value "
+    "after key= is the secret. Paste it into the verify box. It rotates on every "
+    "restart.",
 ]
 
 HINTS = [
@@ -281,9 +289,9 @@ HINTS = [
     "<?xml version=\"1.0\"?>\n"
     "<!DOCTYPE stockCheck [ <!ENTITY xxe SYSTEM \"file:///etc/passwd\"> ]>\n"
     "<stockCheck><productId>&xxe;</productId><storeId>1</storeId></stockCheck>",
-    "The file contents come back inside \"Stock lookup failed: no product "
-    "matches id '...'\". Scroll the error box: /etc/passwd is multi-line, and the "
-    "wwa-flag account line holds the flag in its comment (GECOS) field.",
+    "The file contents come back inside \"...no product matches id '...'\". Scroll "
+    "the error box: /etc/passwd is multi-line, and the svc-stock account line holds "
+    "the value after key= in its comment (GECOS) field.",
     "Real-world fix: parse untrusted XML with DTDs and external-entity resolution "
     "turned OFF (in Python, do not pass resolve_entities=True / load_dtd=True, or "
     "use defusedxml). A parser that refuses the DOCTYPE cannot be tricked into "
@@ -306,15 +314,14 @@ REFERENCES = [
 
 
 def _page(result=None, submitted_xml=None):
-    """Render the lab page, optionally with a stock-check result."""
+    """Render the WildParts page, optionally with a stock-check result."""
     return render_template(
         "index.html",
-        title="WildParts Store - XML External Entity (XXE)",
+        catalogue=CATALOGUE_ITEMS,
         instructions=INSTRUCTIONS,
         hints=HINTS,
         references=REFERENCES,
         languages=LANGUAGES,
-        sample_xml=SAMPLE_XML,
         submitted_xml=submitted_xml if submitted_xml is not None else SAMPLE_XML,
         result=result,
     )

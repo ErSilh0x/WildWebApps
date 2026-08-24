@@ -3,155 +3,221 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ title }} · WildWebApps Lab</title>
+<title>WildParts - stock check</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='wildwebapps.css') }}">
 <style>
-  .xmlform { margin:0; }
-  label.lbl { display:block; color:#c9d1d9; font-size:12px; margin:0 0 6px; }
+  /* ---- product chrome (WildParts) ---- */
+  .wp-nav { display:flex; align-items:center; gap:14px; padding:14px 22px;
+            border-bottom:1px solid #21262d; background:#0d1117; }
+  .wp-logo { display:flex; align-items:center; gap:9px; font-family:var(--font-display,'Space Grotesk',sans-serif);
+             font-weight:700; font-size:17px; color:#e6edf3; }
+  .wp-logo .dot { width:22px; height:22px; border-radius:6px; background:#00caff;
+                  display:inline-flex; align-items:center; justify-content:center;
+                  color:#04222c; font-weight:800; }
+  .wp-nav a { color:#8b949e; text-decoration:none; font-size:13px; }
+  .wp-nav .spacer { flex:1; }
+  .wp-nav .avatar { width:28px; height:28px; border-radius:50%; background:#1f6f8b; }
+  .wp-wrap { max-width:900px; margin:0 auto; padding:26px 22px 60px; }
+  .wp-h { display:flex; align-items:baseline; justify-content:space-between; margin:6px 0 6px; }
+  .wp-h h1 { font-size:22px; margin:0; color:#e6edf3; }
+  .wp-h .count { color:#8b949e; font-size:13px; }
+  .wp-sub { color:#8b949e; font-size:13px; margin:0 0 18px; }
+
+  /* ---- supplier stock API console ---- */
+  .sc-panel { border:1px solid #21262d; border-radius:12px; background:#0f141b; overflow:hidden; }
+  .sc-head { display:flex; align-items:center; gap:10px; padding:13px 16px; border-bottom:1px solid #21262d; }
+  .sc-head .t { color:#e6edf3; font-size:14px; font-weight:600; }
+  .sc-head .d { color:#8b949e; font-size:12px; }
+  .sc-head .spring { flex:1; }
+  .sc-head .method { font-family:var(--font-mono,monospace); font-size:11px; color:#00caff;
+                     border:1px solid #00caff55; border-radius:999px; padding:3px 10px; white-space:nowrap; }
+  .sc-body { padding:16px; }
   textarea.xmlbox {
-    width:100%; box-sizing:border-box; min-height:230px; resize:vertical;
+    width:100%; box-sizing:border-box; min-height:210px; resize:vertical;
     font-family:var(--font-mono,monospace); font-size:13px; line-height:1.5;
     color:#c9d1d9; background:#0d1117; border:1px solid #30363d; border-radius:8px;
-    padding:12px 14px; spellcheck:false; tab-size:2;
+    padding:12px 14px; tab-size:2;
   }
   textarea.xmlbox:focus { outline:none; border-color:#00caff; }
-  .formbar { display:flex; gap:8px; align-items:center; margin-top:10px; }
-  .formbar .hintline { color:#8b949e; font-size:12px; }
-  .res { margin-top:16px; }
-  .res .res-title { font-size:12px; text-transform:uppercase; letter-spacing:.05em;
-                    color:#8b949e; margin:0 0 6px; }
-  .res pre.leakbox { font-family:var(--font-mono,monospace); font-size:12px; color:#c9d1d9;
-                     background:#0d1117; border:1px solid #30363d; border-radius:6px;
-                     padding:10px 12px; margin:0; max-height:320px; overflow:auto;
-                     white-space:pre-wrap; word-break:break-word; }
-  .res .err-head { font-family:var(--font-mono,monospace); font-size:12.5px; color:#f85149;
-                   margin:0 0 6px; word-break:break-word; }
-  .res .ok-head { font-family:var(--font-mono,monospace); font-size:13px; color:#3fb950;
-                  margin:0 0 6px; }
-  .attack-diagram { margin:0 0 14px; border:1px solid #30363d; border-radius:10px; overflow:hidden; background:#0d1117; }
-  .attack-diagram img { display:block; width:100%; height:auto; }
-  .attack-diagram .cap { color:#8b949e; font-size:12px; padding:8px 12px; border-top:1px solid #30363d; }
+  .sc-bar { display:flex; gap:10px; align-items:center; margin-top:10px; }
+  .wp-btn { background:#00caff; color:#04222c; border:none; border-radius:8px;
+            padding:9px 16px; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit; }
+  .sc-bar .hintline { color:#8b949e; font-size:12px; }
+
+  .sc-res { margin-top:16px; border:1px solid #21262d; border-radius:10px; background:#0d1117; overflow:hidden; }
+  .sc-res .bar { padding:9px 12px; border-bottom:1px solid #21262d; font-size:12px; color:#8b949e;
+                 font-family:var(--font-mono,monospace); word-break:break-all; }
+  .sc-res .bar.ok { color:#3fb950; }
+  .sc-res .bar.err { color:#f85149; }
+  .sc-res pre { margin:0; padding:12px; font-family:var(--font-mono,monospace); font-size:12px; color:#c9d1d9;
+                white-space:pre-wrap; word-break:break-word; max-height:340px; overflow:auto; }
+
+  /* ---- catalogue list (makes the page feel like a real store) ---- */
+  .wp-list { list-style:none; margin:22px 0 0; padding:0; display:grid; gap:10px; }
+  .wp-list li { display:flex; align-items:center; gap:12px; border:1px solid #21262d;
+                border-radius:10px; background:#0f141b; padding:12px 14px; }
+  .wp-list .sku { width:52px; height:34px; border-radius:7px; background:#132430; border:1px solid #21262d;
+                  flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+                  font-family:var(--font-mono,monospace); font-size:11px; color:#00caff; }
+  .wp-list .t { color:#e6edf3; font-size:14px; }
+  .wp-list .s { color:#8b949e; font-size:12px; }
+  .wp-list .spring { flex:1; }
+  .wp-list .stock { color:#8b949e; font-size:12px; font-family:var(--font-mono,monospace); }
+  .wp-list .stock.out { color:#f85149; }
+
+  /* ---- training notes (collapsed) ---- */
+  .training { margin-top:30px; border:1px dashed #30363d; border-radius:10px; background:#0d1117; }
+  .training > summary { cursor:pointer; padding:12px 16px; color:#8b949e; font-size:13px;
+                        font-family:var(--font-mono,monospace); list-style:none; }
+  .training > summary::-webkit-details-marker { display:none; }
+  .training > summary b { color:#00caff; }
+  .training .tbody { padding:4px 16px 18px; border-top:1px solid #21262d; }
+  .training h3 { color:#e6edf3; font-size:14px; margin:16px 0 8px; }
+  .training ol { margin:.25rem 0 0 1.1rem; padding:0; color:#c9d1d9; font-size:13px; }
+  .training ol li { margin-bottom:4px; }
+  .training .hint__body pre { white-space:pre-wrap; font-family:var(--font-mono,monospace);
+                              font-size:12px; margin:0; color:#c9d1d9; }
+  .training .flag-form { display:flex; gap:8px; margin-top:6px; }
+  .training a { color:#00caff; }
 </style>
 </head>
 <body>
 
-<header class="vk-header">
-  <span class="vk-mark">&gt;_</span>
-  <span class="vk-wordmark">WildWebApps</span>
-  <span class="badge badge--cyan">XML External Entity (XXE)</span>
-</header>
+<nav class="wp-nav">
+  <span class="wp-logo"><span class="dot">W</span> WildParts</span>
+  <a href="#">Catalogue</a>
+  <a href="#">Orders</a>
+  <a href="#">Suppliers</a>
+  <span class="spacer"></span>
+  <a href="#">New order</a>
+  <span class="avatar"></span>
+</nav>
 
-<main class="vk-shell">
-  <h1>WildParts Store</h1>
-  <p>The store's <b>Check stock</b> feature parses an <b>XML document you control</b>
-  with an unsafe parser that <b>resolves external entities</b>. Declare an entity
-  that points at a local file (<code>file:///etc/passwd</code>), reference it inside
-  <code>&lt;productId&gt;</code>, and the parser reads that file into the document.
-  The lookup then fails and the app <b>quotes your value back in an error message</b>:
-  that error is where the file (and the <b>MD5 flag</b>) leaks out. This is
-  <b>error-based</b> exfiltration.</p>
-
-  <div class="vk-section">
-    <div class="vk-eyebrow">Attack sequence</div>
-    <figure class="attack-diagram">
-      <img src="{{ url_for('static', filename='diagram.svg') }}"
-           alt="XXE attack sequence: the attacker submits an XML document with a DOCTYPE that declares an external entity pointing at file:///etc/passwd; the server's XML parser resolves the entity, reads the file, and the contents leak back inside an application error message.">
-      <figcaption class="cap">How XXE works: the submitted XML declares an external entity
-      (<code>&lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;</code>); the parser resolves it,
-      reads the file, and its contents surface in the error the app returns.</figcaption>
-    </figure>
+<div class="wp-wrap">
+  <div class="wp-h">
+    <h1>Stock check</h1>
+    <span class="count">{{ catalogue|length }} parts in catalogue</span>
   </div>
+  <p class="wp-sub">Suppliers query live stock through the inventory API below. Requests are
+  submitted as XML (a legacy EDI-style integration kept for partner systems).</p>
 
-  <div class="alert alert--info">
-    <div>
-      <div class="alert__title">How to solve</div>
-      <div class="alert__body">
-        <ol style="margin:.25rem 0 0 1.1rem;padding:0;">
-          {% for step in instructions %}<li style="margin-bottom:3px;">{{ step }}</li>{% endfor %}
-        </ol>
+  <!-- Supplier stock API: the server parses the submitted XML and looks up the
+       product id. A normal request returns the stock count; an unknown id is
+       reported back with the id quoted in the error. -->
+  <div class="sc-panel">
+    <div class="sc-head">
+      <div>
+        <div class="t">Supplier stock API</div>
+        <div class="d">Submit an inventory query as XML</div>
       </div>
+      <span class="spring"></span>
+      <span class="method">POST /api/stock</span>
     </div>
-  </div>
+    <div class="sc-body">
+      <form method="POST" action="{{ url_for('index') }}">
+        <textarea class="xmlbox" name="xml" spellcheck="false" autocomplete="off">{{ submitted_xml }}</textarea>
+        <div class="sc-bar">
+          <button class="wp-btn" type="submit">Check stock</button>
+          <span class="hintline">Query one part per request by its <code>productId</code>.</span>
+        </div>
+      </form>
 
-  <div class="vk-section">
-    <div class="vk-eyebrow">Check stock (XML request)</div>
-    <form class="xmlform" method="POST" action="{{ url_for('index') }}">
-      <label class="lbl" for="xml">POST body parsed as XML by the server. Edit it freely:</label>
-      <textarea class="xmlbox" id="xml" name="xml" spellcheck="false"
-                autocomplete="off">{{ submitted_xml }}</textarea>
-      <div class="formbar">
-        <button class="btn btn--primary" type="submit">Check stock</button>
-        <span class="hintline">Tip: add a <code>&lt;!DOCTYPE&gt;</code> with an entity, then reference it in <code>&lt;productId&gt;</code>.</span>
-      </div>
-    </form>
+      {% if result %}
+      <div class="sc-res">
+        {% if result.stock is defined %}
+          <div class="bar ok">200 OK &#183; product {{ result.product_id }}</div>
+          <pre>In stock: {{ result.stock }} unit(s) of "{{ result.name }}"</pre>
+        {% elif result.parse_error is defined %}
+          <div class="bar err">400 Bad Request &#183; XML parse error</div>
+          <pre>{{ result.parse_error }}{% if result.log %}
 
-    {% if result %}
-    <div class="res">
-      {% if result.stock is defined %}
-        <p class="res-title">Result</p>
-        <div class="ok-head">In stock: {{ result.stock }} unit(s) of "{{ result.name }}" (product id {{ result.product_id }})</div>
-      {% elif result.parse_error is defined %}
-        <p class="res-title">XML parser error</p>
-        <div class="err-head">{{ result.parse_error }}</div>
-        {% if result.log %}
-        <pre class="leakbox">{% for line in result.log %}{{ line }}
-{% endfor %}</pre>
+{% for line in result.log %}{{ line }}
+{% endfor %}{% endif %}</pre>
+        {% elif result.error is defined %}
+          <div class="bar err">404 Not Found &#183; stock lookup failed</div>
+          <pre>{{ result.error }} '{{ result.value }}'</pre>
         {% endif %}
-      {% elif result.error is defined %}
-        <p class="res-title">Application error</p>
-        <pre class="leakbox">{{ result.error }} '{{ result.value }}'</pre>
+      </div>
       {% endif %}
     </div>
-    {% endif %}
   </div>
 
-  {% if hints %}
-  <div class="vk-section">
-    <div class="vk-eyebrow">Hints</div>
-    {% for hint in hints %}
-    <details class="hint"><summary>Hint {{ loop.index }}</summary>
-      <div class="hint__body"><pre style="white-space:pre-wrap;font-family:var(--font-mono,monospace);font-size:12px;margin:0;color:#c9d1d9;">{{ hint }}</pre></div>
-    </details>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% if languages %}
-  <div class="vk-section">
-    <div class="vk-eyebrow">Code examples</div>
-    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
-      <div class="tabs" id="lang-tabs"></div>
-      <div class="tabs" id="view-tabs">
-        <button class="tab" type="button" data-view="vuln">Vulnerable</button>
-        <button class="tab" type="button" data-view="fixed">Fixed</button>
+  <!-- Catalogue snapshot: static, just so the page looks like a working store. -->
+  <ul class="wp-list">
+    {% for item in catalogue %}
+    <li>
+      <span class="sku">{{ item.sku }}</span>
+      <div>
+        <div class="t">{{ item.name }}</div>
+        <div class="s">product id {{ item.id }} &#183; {{ item.category }}</div>
       </div>
-    </div>
-    <div id="code-mount"></div>
-  </div>
-  {% endif %}
+      <span class="spring"></span>
+      <span class="stock{% if item.stock == 0 %} out{% endif %}">{% if item.stock == 0 %}out of stock{% else %}{{ item.stock }} in stock{% endif %}</span>
+    </li>
+    {% endfor %}
+  </ul>
 
-  <div class="vk-section">
-    <div class="vk-eyebrow">Submit the flag</div>
-    <form class="flag-form" id="flag-form" autocomplete="off">
-      <input class="input" id="flag-input" name="flag"
-             placeholder="Paste the 32-char MD5 flag…" spellcheck="false">
-      <button class="btn btn--primary" type="submit">Check</button>
-    </form>
-    <div class="alert" id="flag-result" hidden></div>
-  </div>
+  <!-- ===================== TRAINING NOTES (collapsed) ===================== -->
+  <details class="training">
+    <summary>&#9656; <b>Training notes</b> - XML External Entity (XXE) &#183; A05:2025 &#183; click to expand</summary>
+    <div class="tbody">
+      <p style="color:#8b949e;font-size:13px;">
+        The stock API parses the XML you submit with a parser that <b>resolves
+        external entities</b>. Declare an entity that points at a local file
+        (<code>file:///etc/passwd</code>) and reference it inside
+        <code>&lt;productId&gt;</code>: the parser reads the file into the
+        document, the lookup then fails, and the app <b>quotes your value back in
+        the error</b>. That error is where the file (and the planted secret) leaks
+        out. This is <b>error-based</b> exfiltration.
+      </p>
 
-  {% if references %}
-  <div class="vk-section">
-    <div class="vk-eyebrow">References</div>
-    <ul>
-      {% for label, url in references %}
-      <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} ↗</a></li>
+      <div class="vk-section">
+        <div class="vk-eyebrow">Attack sequence</div>
+        <figure style="margin:0;border:1px solid #21262d;border-radius:10px;overflow:hidden;background:#0d1117;">
+          <img src="{{ url_for('static', filename='diagram.svg') }}" style="display:block;width:100%;height:auto;"
+               alt="XXE attack sequence: the submitted XML declares an external entity pointing at file:///etc/passwd; the parser resolves it, reads the file, and the contents leak back inside an application error message.">
+        </figure>
+      </div>
+
+      <h3>How to solve</h3>
+      <ol>
+        {% for step in instructions %}<li>{{ step }}</li>{% endfor %}
+      </ol>
+
+      <h3>Hints</h3>
+      {% for hint in hints %}
+      <details class="hint"><summary>Hint {{ loop.index }}</summary>
+        <div class="hint__body"><pre>{{ hint }}</pre></div>
+      </details>
       {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
 
-</main>
+      <h3>Code examples</h3>
+      <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="tabs" id="lang-tabs"></div>
+        <div class="tabs" id="view-tabs">
+          <button class="tab" type="button" data-view="vuln">Vulnerable</button>
+          <button class="tab" type="button" data-view="fixed">Fixed</button>
+        </div>
+      </div>
+      <div id="code-mount"></div>
+
+      <h3>Verify the secret you recovered</h3>
+      <form class="flag-form" id="flag-form" autocomplete="off">
+        <input class="input" id="flag-input" name="flag"
+               placeholder="Paste the 32-char value…" spellcheck="false">
+        <button class="btn btn--primary" type="submit">Check</button>
+      </form>
+      <div class="alert" id="flag-result" hidden></div>
+
+      <h3>References</h3>
+      <ul>
+        {% for label, url in references %}
+        <li><a href="{{ url }}" target="_blank" rel="noopener">{{ label }} &#8599;</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </details>
+</div>
 
 <script id="lab-data" type="application/json">{{ languages | tojson }}</script>
 <script src="{{ url_for('static', filename='app.js') }}"></script>

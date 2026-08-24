@@ -230,7 +230,7 @@ expansion, and whether they support the `PUBLIC` identifier form.
 
 ## The XXE variant map
 
-XXE is a family of vulnerabilities. The same external-entity primitive drives several distinct
+XXE is a family. The same external-entity primitive drives several distinct
 attacks; which one you use depends on what the application lets you observe.
 
 ### 1. In-band file retrieval (classic)
@@ -279,8 +279,7 @@ There are two flavours:
   %error;
   ```
   The parser tries to open `file:///nonexistent/<contents of /etc/passwd>`,
-  fails, and prints the whole path, contents included, in its error. This is the
-  canonical error-based XXE. The lab teaches the application-error
+  fails, and prints the whole path, contents included, in its error. The lab teaches the application-error
   flavour because it is self-contained and offline; the hints point at this
   parser-error variant for completeness.
 
